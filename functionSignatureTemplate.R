@@ -47,12 +47,32 @@ build_query_url <- function(year = 2022,
 # Census API Query Function
 # KATY - take url all the way to tibble 
 # (nice and neat and columns in correct format etc)
-query_census_with_url(url) {
-  # GET()
+query_census_with_url <- function(url) {
   
-  # fromJSON
+  # retrieve data in list form from API
+  census_raw <- httr::GET(url)
   
-  # as_tibble
+  # call helper function to turn API raw data into a raw tibble
+  census_raw_tbl <- query_helper(census_raw)
+
+  # a bunch of other stuff to clean tibble
+  
+  # return final clean tibble
+  
+}
+
+# helper function for query_census_with_url: put json stuff into raw tibble (all char)
+query_helper <- function(census_raw) {
+  
+  # convert JSON string raw data to data frame (first row are column names)
+  parsed_census <- as.data.frame(fromJSON(rawToChar(census_raw$content)))
+  
+  # convert to a tibble, use 1st row from raw df as column names
+  census_tbl <- as_tibble(parsed_census[-1,])
+  colnames(census_tbl) <- parsed_census[1,]
+  
+  # return final tibble
+  return(census_tbl)
 }
 
 
