@@ -10,17 +10,34 @@
 library(tidyverse)
 library(jsonlite)
 
+# User interface to take inputs and return fully processed data tibble
+# CHRIS
+get_data_tibble_from_api <- function(year = 2022, 
+                                     numeric_vars = c("AGEP", "PWGTP"), 
+                                     categorical_vars = c("SEX"), 
+                                     geography = "All", 
+                                     subset = NULL) {
+
+  # Check that a valid value was given (number between 2010 and 2022)
+  
+  # Verify numeric variables
+  
+  # validate catagorical variables
+  
+  # IDEA
+  # build_query_url |> query_census_with_url |> process_census_data
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Take user input to build a valid url
+# CHRIS
 build_query_url <- function(year = 2022, 
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
                             geography = "All", 
                             subset = NULL) {
   
-  # Check that a valid value was given (number between 2010 and 2022)
-  
-  # Verify numeric variables 
+
   
   
   
@@ -28,15 +45,20 @@ build_query_url <- function(year = 2022,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Census API Query Function
+# KATY - take url all the way to tibble 
+# (nice and neat and columns in correct format etc)
 query_census_with_url(url) {
+  # GET()
   
+  # fromJSON
   
-  
+  # as_tibble
 }
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper Function to Process and Clean Data 
+# KATY
 process_census_data <- function(raw_data, 
                                 numeric_vars, 
                                 categorical_vars) {
@@ -52,6 +74,7 @@ process_census_data <- function(raw_data,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Summary Function for Census Class
+# CHRIS
 summary.census_data <- function(data, 
                                 numeric_vars = NULL, 
                                 categorical_vars = NULL) {
@@ -63,25 +86,29 @@ summary.census_data <- function(data,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Plotting Function for Census Class 
-plot.census_data <- function(data, 
+plot.census_data <- function(data_as_tibble, 
                              cat_var, 
                              num_var) {
   
-  
-  
-  
+  ggplot(data_as_tibble,
+         aes(x = get(cat_var), 
+             y = get(num_var), 
+             weight = PWGTP)) +
+    geom_boxplot()
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Function for Querying Multiple Years
+# KATY
 query_multiple_years <- function(years, 
                                  numeric_vars = c("AGEP", "PWGTP"), 
                                  categorical_vars = c("SEX"), 
                                  geography = "All", 
                                  subset = NULL) {
   
+  # call the user interface for each year
   
-  
+
   
 }
 
