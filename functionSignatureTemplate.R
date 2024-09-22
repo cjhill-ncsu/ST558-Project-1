@@ -136,17 +136,13 @@ get_subset_code <- function(geography, subset) {
   
   if (is.null(subset)) {
     return("*")
-    
-  } else if (geography == "Region") {
-    return(region_codes[[subset]])  
-    
-  } else if (geography == "Division") {
-    return(division_codes[[subset]])  
-    
-  } else if (geography == "State") {
-    # currently taking state code from user
-    return(subset)
   }
+  
+  switch(geography,
+         "Region" = region_codes[[subset]],
+         "Division" = division_codes[[subset]],
+         "State" = subset,
+         stop("Invalid geography type"))
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
