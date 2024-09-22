@@ -33,7 +33,8 @@ get_data_tibble_from_api <- function(year = 2022,
 # Year must be between 2010 and 2022.
 validate_year <- function(year){
   
-  if (!(year %in% 2010:2022)) stop("Year must be between 2010 and 2022.")
+  if (!(year %in% 2010:2022)) 
+    stop("Year must be between 2010 and 2022.")
 }
 
 # PWGTP and at least one other valid numeric variable must be selected
@@ -59,6 +60,7 @@ validate_categorical_vars <- function(categorical_vars) {
     stop("At least one categorical variable must be selected.")
 }
 
+# There are set geographical regions
 validate_geography_level <- function(geography) {
   
   valid_geography_levels <- get_valid_geographical_levels()
@@ -69,6 +71,7 @@ validate_geography_level <- function(geography) {
   }
 }
 
+# Subset must be in line with provided geography
 validate_subset <- function(geography, subset) {
   
   if (geography == "All") 
@@ -83,7 +86,7 @@ validate_subset <- function(geography, subset) {
   )
   
   if (!(subset %in% valid_options[[geography]]))
-    stop(paste("Invalid subset for", geography, ". Must be one of:", 
+    stop(paste("Invalid subset for ", geography, ". Must be one of:", 
                paste(valid_options[[geography]], collapse = ", ")))
 }
 
@@ -110,7 +113,11 @@ build_query_url <- function(year = 2022,
                             geography = "All", 
                             subset = NULL) {
 
-  base_url <- paste0("https://api.census.gov/data/", year, "/acs/acs1/pums?")
+  dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
+  
+  base_url <- paste0("https://api.census.gov/data/", 
+                     year, "/acs/", dataset_type, "/pums?")
+  
   
   # Handle numeric and categorical inputs
   query_vars <- c(numeric_vars, categorical_vars)
@@ -121,11 +128,13 @@ build_query_url <- function(year = 2022,
   
   if (geography != "All") {
 
-    geography_query <- paste0("for=", gsub(" ", "%20", geography), ":*")
-    
-    # Handle subsets
+    # If a subset is provided, format as "for={geography}:{subset}"
     if (!is.null(subset)) {
-      geography_query <- paste0(geography_query, "&in=", subset)
+      geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
+    } 
+    # If no subset is provided, format as "for={geography}:*"
+    else {
+      geography_query <- paste0("for=", gsub(" ", "%20", geography), ":*")
     }
   }
   
@@ -139,6 +148,35 @@ build_query_url <- function(year = 2022,
   # Return the fully constructed URL
   return(final_url)
 }
+
+
+url1 <- build_query_url(year = 2020, 
+                        numeric_vars = c("AGEP", "PWGTP"), 
+                        categorical_vars = c("SEX"), 
+                        geography = "All", 
+                        subset = NULL)
+
+url2 <- build_query_url(year = 2021, 
+                        numeric_vars = c("AGEP", "PWGTP", "JWAP"), 
+                        categorical_vars = c("SEX", "SCHL"), 
+                        geography = "Region", 
+                        subset = "Northeast")
+
+url3 <- build_query_url(year = 2022, 
+                        numeric_vars = c("AGEP", "GRPIP"), 
+                        categorical_vars = c("SEX", "HISPEED"), 
+                        geography = "State", 
+                        subset = "01")
+
+url1
+url2
+url3
+
+
+
+
+
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Census API Query Function
