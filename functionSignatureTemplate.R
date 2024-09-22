@@ -186,38 +186,33 @@ build_query_url <- function(year = 2022,
 }
 
 
-url1 <- build_query_url(year = 2020, 
-                        numeric_vars = c("AGEP", "PWGTP"), 
-                        categorical_vars = c("SEX"), 
+
+
+# TESTING URL
+library(httr) 
+
+# Function to test if a URL returns valid data
+is_url_valid <- function(url) {
+
+  response <- GET(url)
+
+  is_success <- http_status(response)$category == "Success"
+
+  response_content <- content(response, as = "text")
+  has_content <- !is.null(response_content) && nchar(response_content) > 0
+  
+  return(is_success && has_content)
+}
+
+urlTest <- build_query_url(year = 2021, 
+                        numeric_vars = c("AGEP", "PWGTP", "JWAP"), 
+                        categorical_vars = c("SEX", "SCHL"), 
                         geography = "All", 
                         subset = NULL)
 
-url2 <- build_query_url(year = 2021, 
-                        numeric_vars = c("AGEP", "PWGTP", "JWAP"), 
-                        categorical_vars = c("SEX", "SCHL"), 
-                        geography = "Region", 
-                        subset = "Northeast")
-
-url3 <- build_query_url(year = 2022, 
-                        numeric_vars = c("AGEP", "GRPIP"), 
-                        categorical_vars = c("SEX", "HISPEED"), 
-                        geography = "State", 
-                        subset = "01")
-
-url4 <- build_query_url(year = 2012, 
-                        numeric_vars = c("PWGTP", "JWAP"), 
-                        categorical_vars = c("SEX"), 
-                        geography = "Division", 
-                        subset = "Pacific")
-
-url1
-url2
-url3
-url4
-
-
-
-
+cat("Testing:\n", urlTest, "\n")
+result <- is_url_valid(urlTest)
+cat("URL is valid: ", result, "\n")
 
 
 
