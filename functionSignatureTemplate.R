@@ -32,10 +32,17 @@ get_data_tibble_from_api <- function(year = 2022,
 
 validate_year <- function(year){
   
+  if (!(year %in% 2010:2022)) stop("Year must be between 2010 and 2022.")
 }
 
 validate_numeric_vars <- function(numeric_vars) {
   
+  valid_numeric_vars <- get_valid_numeric_variables()
+  numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
+  
+  if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
+    stop("PWGTP and at least one other numeric variable must be selected.")
+  }
 }
 
 validate_categorical_vars <- function(categorical_vars) {
@@ -48,6 +55,20 @@ validate_geography_level <- function(geography) {
 
 validate_subset <- function(subset) {
   
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+get_valid_numeric_variables <- function() {
+  c("AGEP", "PWGTP", "GASP", "GRPIP", "JWAP", "JWDP", "JWMNP")
+}
+
+get_valid_categorical_variables <- function() {
+  c("SEX", "FER", "HHL", "HISPEED", "JWAP", "JWDP", "JWTRNS", "SCH", "SCHL")
+}
+
+get_valid_geographical_levels <- function() {
+  c("All", "Region", "Division", "State")
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
