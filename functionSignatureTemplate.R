@@ -18,18 +18,40 @@ get_data_tibble_from_api <- function(year = 2022,
                                      geography = "All", 
                                      subset = NULL) {
 
-  # Check that a valid value was given (number between 2010 and 2022)
+  # validate the user inputs
+  validate_year(year)
+  validate_numeric_vars(numeric_vars)
+  validate_categorical_vars(categorical_vars)
+  validate_geography_level(geography)
   
-  # Verify numeric variables
-  
-  # validate catagorical variables
-  
-  # IDEA
+  # Send inputs to retrieve data
   # build_query_url |> query_census_with_url |> process_census_data
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Take user input to build a valid url
+
+validate_year <- function(year){
+  
+}
+
+validate_numeric_vars <- function(numeric_vars) {
+  
+}
+
+validate_categorical_vars <- function(categorical_vars) {
+  
+}
+
+validate_geography_level <- function(geography) {
+  
+}
+
+validate_subset <- function(subset) {
+  
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Build a valid url
 # CHRIS
 build_query_url <- function(year = 2022, 
                             numeric_vars = c("AGEP", "PWGTP"), 
