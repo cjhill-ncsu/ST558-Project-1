@@ -23,14 +23,16 @@ get_data_tibble_from_api <- function(year = 2022,
   validate_year(year)
   validate_numeric_vars(numeric_vars)
   validate_categorical_vars(categorical_vars)
-  validate_geography_level(geography)
+  validate_geography_var(geography)
   
   # Send inputs to retrieve data
   build_query_url(year,
                   numeric_vars,
                   categorical_vars,
                   geography,
-                  subset) #|> query_census_with_url |> process_census_data
+                  subset) 
+  
+  #|> query_census_with_url |> process_census_data |> etc
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,10 +67,10 @@ validate_categorical_vars <- function(categorical_vars) {
     stop("At least one categorical variable must be selected.")
 }
 
-# There are set geographical regions
-validate_geography_level <- function(geography) {
+# There are set geography regions
+validate_geography_var <- function(geography) {
   
-  valid_geography_levels <- get_valid_geographical_levels()
+  valid_geography_levels <- get_valid_geography_levels()
 
   if (!(geography %in% valid_geography_levels)) {
     stop("Invalid geography level. Must be one of: ", 
@@ -105,7 +107,7 @@ get_valid_categorical_vars <- function() {
   c("SEX", "FER", "HHL", "HISPEED", "JWAP", "JWDP", "JWTRNS", "SCH", "SCHL")
 }
 
-get_valid_geographical_levels <- function() {
+get_valid_geography_levels <- function() {
   c("All", "Region", "Division", "State")
 }
 
@@ -269,10 +271,76 @@ summary.census_data <- function(data,
                                 numeric_vars = NULL, 
                                 categorical_vars = NULL) {
   
+  # Determine the variables that are actually in the dataset
+  valid_numeric_vars <- get_valid_numeric_vars()
+  valid_categorical_vars <- get_valid_categorical_vars()
   
+  numeric_vars_in_data <- intersect(names(data), valid_numeric_vars)
+  categorical_vars_in_data <- intersect(names(data), valid_categorical_vars)
   
+  # Default: Summarize all numeric variables except PWGTP in dataset
+  if (is.null(numeric_vars)) {
+    numeric_vars <- numeric_vars_in_data[numeric_vars_in_data != "PWGTP"]
+  } else {
+    # otherwise filter only for those provided
+    numeric_vars <- intersect(numeric_vars, numeric_vars_in_data)
+  }
   
+  # Default: Summarize all categorical variables in dataset
+  if (is.null(categorical_vars)) {
+    categorical_vars <- categorical_vars_in_data
+  } else {
+    # otherwise filter only for those provided
+    categorical_vars <- intersect(categorical_vars, categorical_vars_in_data)
+  }
+  
+  weight <- data$PWGTP
+  summary_list <- list()
+  
+  # Summarize numeric variables
+  for (var in numeric_vars) {
+    numeric_vector <- data[[var]]
+    
+    # Calculate weighted mean and standard deviation
+    weighted_sample_mean <- sum(numeric_vector * weight, na.rm = TRUE) / 
+                          sum(weight, na.rm = TRUE)
+    sample_sd <- sqrt(sum((numeric_vector^2) * weight, na.rm = TRUE) / 
+                          sum(weight, na.rm = TRUE) - weighted_sample_mean^2)
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      mean = weighted_sample_mean,
+      sd = sample_sd
+    )
+  }
+  
+  # Summarize categorical variables
+  for (var in categorical_vars) {
+    
+    counts <-  data |> count(.data[[var]])
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      counts = counts
+    )
+  }
+
+  return(summary_list)
 }
+
+
+# TESTING SUMMARY FUNCTION
+test_tibble <- tibble(
+  AGEP = as.numeric(c(25, 30, 45, 22, 28, 35)),    
+  SEX = as.factor(c("Male", "Female", "Female", "Male", "Male", "Female")),  
+  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5))
+)
+class(test_tibble) <- c("census", class(test_tibble))
+
+str(test_tibble)
+
+summary.census_data(test_tibble)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Plotting Function for Census Class 
@@ -328,9 +396,6 @@ query_multiple_years <- function(years,
   
 }
 
-# USAGE CASE
 
-num_vars <- c()
-cat_vars <- c()
 
 
