@@ -23,7 +23,7 @@ get_data_tibble_from_api <- function(year = 2022,
   validate_year(year)
   validate_numeric_vars(numeric_vars)
   validate_categorical_vars(categorical_vars)
-  validate_geography_level(geography)
+  validate_geography_var(geography)
   
   # Send inputs to retrieve data
   build_query_url(year,
@@ -67,10 +67,10 @@ validate_categorical_vars <- function(categorical_vars) {
     stop("At least one categorical variable must be selected.")
 }
 
-# There are set geographical regions
-validate_geography_level <- function(geography) {
+# There are set geography regions
+validate_geography_var <- function(geography) {
   
-  valid_geography_levels <- get_valid_geographical_levels()
+  valid_geography_levels <- get_valid_geography_levels()
 
   if (!(geography %in% valid_geography_levels)) {
     stop("Invalid geography level. Must be one of: ", 
@@ -107,7 +107,7 @@ get_valid_categorical_vars <- function() {
   c("SEX", "FER", "HHL", "HISPEED", "JWAP", "JWDP", "JWTRNS", "SCH", "SCHL")
 }
 
-get_valid_geographical_levels <- function() {
+get_valid_geography_levels <- function() {
   c("All", "Region", "Division", "State")
 }
 
