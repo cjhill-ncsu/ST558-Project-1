@@ -9,6 +9,7 @@
 # Load required libraries 
 library(tidyverse)
 library(jsonlite)
+library(httr) 
 
 # User interface to take inputs and return fully processed data tibble
 # CHRIS
@@ -25,7 +26,11 @@ get_data_tibble_from_api <- function(year = 2022,
   validate_geography_level(geography)
   
   # Send inputs to retrieve data
-  # build_query_url |> query_census_with_url |> process_census_data
+  build_query_url(year,
+                  numeric_vars,
+                  categorical_vars,
+                  geography,
+                  subset) #|> query_census_with_url |> process_census_data
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +132,10 @@ get_subset_code <- function(geography, subset) {
     "Pacific" = "9"
   )
   
-  if (geography == "Region") {
+  if (is.null(subset)) {
+    return("*")
+    
+  } else if (geography == "Region") {
     return(region_codes[[subset]])  
     
   } else if (geography == "Division") {
@@ -163,16 +171,10 @@ build_query_url <- function(year = 2022,
   
   if (geography != "All") {
 
-    # If a subset is provided, format as "for={geography}:{subset}"
-    if (!is.null(subset)) {
-      # Subsets need to be numeric codes. 
-      subset <- get_subset_code(geography, subset)
-      
-      geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
-    } 
-    else {
-      geography_query <- paste0("for=", gsub(" ", "%20", geography), ":*")
-    }
+    # Subsets need to be numeric codes. If null will return *
+    subset <- get_subset_code(geography, subset)
+    
+    geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
   }
   
   # Concatenate base_url, query_string, and geography_query
@@ -186,12 +188,7 @@ build_query_url <- function(year = 2022,
 }
 
 
-
-
 # TESTING URL
-library(httr) 
-
-# Function to test if a URL returns valid data
 is_url_valid <- function(url) {
 
   response <- GET(url)
