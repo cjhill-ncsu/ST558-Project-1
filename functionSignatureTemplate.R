@@ -37,7 +37,8 @@ validate_year <- function(year){
 
 validate_numeric_vars <- function(numeric_vars) {
   
-  valid_numeric_vars <- get_valid_numeric_variables()
+  valid_numeric_vars <- get_valid_numeric_vars()
+  
   numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
   
   if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
@@ -47,6 +48,11 @@ validate_numeric_vars <- function(numeric_vars) {
 
 validate_categorical_vars <- function(categorical_vars) {
   
+  valid_categorical_vars <- get_valid_categorical_vars()
+  
+  categorical_vars <- intersect(categorical_vars, valid_categorical_vars)
+  
+  if (length(categorical_vars) < 1) stop("At least one categorical variable must be selected.")
 }
 
 validate_geography_level <- function(geography) {
@@ -59,11 +65,11 @@ validate_subset <- function(subset) {
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-get_valid_numeric_variables <- function() {
+get_valid_numeric_vars <- function() {
   c("AGEP", "PWGTP", "GASP", "GRPIP", "JWAP", "JWDP", "JWMNP")
 }
 
-get_valid_categorical_variables <- function() {
+get_valid_categorical_vars <- function() {
   c("SEX", "FER", "HHL", "HISPEED", "JWAP", "JWDP", "JWTRNS", "SCH", "SCHL")
 }
 
@@ -127,7 +133,7 @@ process_census_data <- function(raw_data,
                                 categorical_vars) {
   # Parse JSON data
   
-  # turn variables into numeric values or time values (use the middle of the 
+  # turn vars into numeric values or time values (use the middle of the 
   # time period) where appropriate.
   
   # Assign class for custom methods
