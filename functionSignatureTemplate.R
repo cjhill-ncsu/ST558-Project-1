@@ -30,7 +30,9 @@ get_data_tibble_from_api <- function(year = 2022,
                   numeric_vars,
                   categorical_vars,
                   geography,
-                  subset) #|> query_census_with_url |> process_census_data
+                  subset) 
+  
+  #|> query_census_with_url |> process_census_data |> etc
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -269,9 +271,65 @@ summary.census_data <- function(data,
                                 numeric_vars = NULL, 
                                 categorical_vars = NULL) {
   
+  # Validate User Input
+  validate_numeric_vars(numeric_vars)
+  validate_categorical_vars(categorical_vars)
   
+  # Determine the variables that are actually in the dataset
+  valid_numeric_vars <- get_valid_numeric_vars()
+  valid_categorical_vars <- get_valid_categorical_vars()
   
+  numeric_vars_in_data <- intersect(names(data), valid_numeric_vars)
+  categorical_vars_in_data <- intersect(names(data), valid_categorical_vars)
   
+  # Default: Summarize all numeric variables except PWGTP in dataset
+  if (is.null(numeric_vars)) {
+    numeric_vars <- numeric_vars_in_data[numeric_vars_in_data != "PWGTP"]
+  } else {
+    # otherwise filter only for those provided
+    numeric_vars <- intersect(numeric_vars, numeric_vars_in_data)
+  }
+  
+  # Default: Summarize all categorical variables in dataset
+  if (is.null(categorical_vars)) {
+    categorical_vars <- categorical_vars_in_data
+  } else {
+    # otherwise filter only for those provided
+    categorical_vars <- intersect(categorical_vars, categorical_vars_in_data)
+  }
+  
+  weight <- data$PWGTP
+  summary_list <- list()
+  
+  # Summarize numeric variables
+  for (var in numeric_vars) {
+    numeric_vector <- data[[var]]
+    
+    # Calculate weighted mean and standard deviation
+    weighted_sample_mean <- sum(numeric_vector * weight, na.rm = TRUE) / 
+                          sum(weight, na.rm = TRUE)
+    sample_sd <- sqrt(sum((numeric_vector^2) * weight, na.rm = TRUE) / 
+                          sum(weight, na.rm = TRUE) - weighted_sample_mean^2)
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      mean = weighted_sample_mean,
+      sd = sample_sd
+    )
+  }
+  
+  # Summarize categorical variables
+  for (var in categorical_vars) {
+    
+    counts <-  data |> count(.data[[var]])
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      counts = counts
+    )
+  }
+
+  return(summary_list)
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -302,9 +360,6 @@ query_multiple_years <- function(years,
   
 }
 
-# USAGE CASE
 
-num_vars <- c()
-cat_vars <- c()
 
 
