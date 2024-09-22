@@ -30,11 +30,13 @@ get_data_tibble_from_api <- function(year = 2022,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Year must be between 2010 and 2022.
 validate_year <- function(year){
   
   if (!(year %in% 2010:2022)) stop("Year must be between 2010 and 2022.")
 }
 
+# PWGTP and at least one other valid numeric variable must be selected
 validate_numeric_vars <- function(numeric_vars) {
   
   valid_numeric_vars <- get_valid_numeric_vars()
@@ -46,21 +48,43 @@ validate_numeric_vars <- function(numeric_vars) {
   }
 }
 
+# At least one valid categorical variable must be selected
 validate_categorical_vars <- function(categorical_vars) {
   
   valid_categorical_vars <- get_valid_categorical_vars()
   
   categorical_vars <- intersect(categorical_vars, valid_categorical_vars)
   
-  if (length(categorical_vars) < 1) stop("At least one categorical variable must be selected.")
+  if (length(categorical_vars) < 1) 
+    stop("At least one categorical variable must be selected.")
 }
 
 validate_geography_level <- function(geography) {
   
+  valid_geography_levels <- get_valid_geographical_levels()
+
+  if (!(geography %in% valid_geography_levels)) {
+    stop("Invalid geography level. Must be one of: ", 
+         paste(valid_geography_levels, collapse = ", "))
+  }
 }
 
-validate_subset <- function(subset) {
+validate_subset <- function(geography, subset) {
   
+  if (geography == "All") 
+    stop("Subsetting is not allowed when geography is 'All'.")
+  
+  valid_options <- list(
+    Region = c("Northeast", "Midwest", "South", "West"),
+    Division = c("New England", "Middle Atlantic", "East North Central", 
+                 "West North Central", "South Atlantic", "East South Central", 
+                 "West South Central", "Mountain", "Pacific"),
+    State = sprintf("%02d", 1:56)
+  )
+  
+  if (!(subset %in% valid_options[[geography]]))
+    stop(paste("Invalid subset for", geography, ". Must be one of:", 
+               paste(valid_options[[geography]], collapse = ", ")))
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
