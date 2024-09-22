@@ -271,10 +271,6 @@ summary.census_data <- function(data,
                                 numeric_vars = NULL, 
                                 categorical_vars = NULL) {
   
-  # Validate User Input
-  validate_numeric_vars(numeric_vars)
-  validate_categorical_vars(categorical_vars)
-  
   # Determine the variables that are actually in the dataset
   valid_numeric_vars <- get_valid_numeric_vars()
   valid_categorical_vars <- get_valid_categorical_vars()
@@ -331,6 +327,20 @@ summary.census_data <- function(data,
 
   return(summary_list)
 }
+
+
+# TESTING SUMMARY FUNCTION
+test_tibble <- tibble(
+  AGEP = as.numeric(c(25, 30, 45, 22, 28, 35)),    
+  SEX = as.factor(c("Male", "Female", "Female", "Male", "Male", "Female")),  
+  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5))
+)
+class(test_tibble) <- c("census", class(test_tibble))
+
+str(test_tibble)
+
+summary.census_data(test_tibble)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Plotting Function for Census Class 
