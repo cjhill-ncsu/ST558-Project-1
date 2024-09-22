@@ -104,6 +104,36 @@ get_valid_geographical_levels <- function() {
   c("All", "Region", "Division", "State")
 }
 
+# Function to get the appropriate subset code for Regions or Divisions
+get_subset_code <- function(geography, subset) {
+  
+  # Mappings for regions and divisions
+  region_codes <- list(
+    "Northeast" = "1", 
+    "Midwest" = "2", 
+    "South" = "3", 
+    "West" = "4"
+  )
+  
+  division_codes <- list(
+    "New England" = "1", 
+    "Middle Atlantic" = "2", 
+    "East North Central" = "3", 
+    "West North Central" = "4", 
+    "South Atlantic" = "5", 
+    "East South Central" = "6", 
+    "West South Central" = "7", 
+    "Mountain" = "8", 
+    "Pacific" = "9"
+  )
+  
+  if (geography == "Region") {
+    return(region_codes[[subset]])  
+  } else if (geography == "Division") {
+    return(division_codes[[subset]])  
+  }
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CHRIS
 # Build a valid URL for the Census API (assuming inputs are validated)
@@ -130,6 +160,11 @@ build_query_url <- function(year = 2022,
 
     # If a subset is provided, format as "for={geography}:{subset}"
     if (!is.null(subset)) {
+      # Subsets need to be numeric codes. 
+      # We are assuming state codes are numeric from user
+      if (geography != "State") 
+        subset <- get_subset_code(geography, subset)
+      
       geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
     } 
     # If no subset is provided, format as "for={geography}:*"
@@ -168,9 +203,16 @@ url3 <- build_query_url(year = 2022,
                         geography = "State", 
                         subset = "01")
 
+url4 <- build_query_url(year = 2012, 
+                        numeric_vars = c("PWGTP", "JWAP"), 
+                        categorical_vars = c("SEX"), 
+                        geography = "Division", 
+                        subset = "Pacific")
+
 url1
 url2
 url3
+url4
 
 
 
