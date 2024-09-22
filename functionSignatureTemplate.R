@@ -223,7 +223,7 @@ query_census_with_url <- function(url) {
   census_raw <- httr::GET(url)
   
   # call helper function to turn API raw data into a raw tibble
-  census_raw_tbl <- query_helper(census_raw)
+  census_raw_tbl <- json_to_raw_tbl_helper(census_raw)
 
   # a bunch of other stuff to clean tibble
   
@@ -232,7 +232,7 @@ query_census_with_url <- function(url) {
 }
 
 # helper function for query_census_with_url: put json stuff into raw tibble (all char)
-query_helper <- function(census_raw) {
+json_to_raw_tbl_helper <- function(census_raw) {
   
   # convert JSON string raw data to data frame (first row are column names)
   parsed_census <- as.data.frame(fromJSON(rawToChar(census_raw$content)))
@@ -290,15 +290,41 @@ plot.census_data <- function(data_as_tibble,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Function for Querying Multiple Years
 # KATY
+# NOTE: I have not tested this, it may not work.
 query_multiple_years <- function(years, 
                                  numeric_vars = c("AGEP", "PWGTP"), 
                                  categorical_vars = c("SEX"), 
                                  geography = "All", 
                                  subset = NULL) {
   
-  # call the user interface for each year
+  # create empty list to store data frames
+  multi_year_list <- list()
   
-
+  # call the user interface for each year
+  for (yr in years) {
+    
+    # retrieve single year data tibble
+    census_single_yr <- get_data_tibble_from_api(yr,
+                                                 numeric_vars,
+                                                 categorical_vars,
+                                                 geography,
+                                                 subset)
+    
+    # append year to the tibble
+    census_single_yr_tbl <- tibble(Year = yr, census_single_yr)
+    
+    # check how many elements are currently in list
+    elements <- length(multi_year_list)
+    
+    # insert the tbl into the list as the last element
+    multi_year_list[[elements + 1]] <- census_single_yr_tbl
+  }
+  
+  # union of all year-specific results
+  census_multi_year_tbl <- bind_rows(multi_year_list)
+  
+  # return the final tibble
+  return(census_multi_year_tbl)
   
 }
 
