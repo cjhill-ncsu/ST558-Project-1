@@ -227,9 +227,11 @@ query_census_with_url <- function(url) {
   # call helper function to turn API raw data into a raw tibble
   census_raw_tbl <- json_to_raw_tbl_helper(census_raw)
 
-  # a bunch of other stuff to clean tibble
+  # call helper function to clean tibble
+  census_clean_tbl <- process_census_data(census_raw_tbl)
   
   # return final clean tibble
+  return(census_clean_tbl)
   
 }
 
@@ -251,16 +253,27 @@ json_to_raw_tbl_helper <- function(census_raw) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper Function to Process and Clean Data 
 # KATY
-process_census_data <- function(raw_data, 
-                                numeric_vars, 
-                                categorical_vars) {
-  # Parse JSON data
+process_census_data <- function(raw_data_tbl) {
+
+  # retrieve valid numeric vars as factor, keeping only the ones that exist in 
+  # the input raw data
+  num_vars <- 
+    as.factor(get_valid_numeric_vars()) |>
+    intersect(names(raw_data_tbl))
+
+  # turn vars into numeric values in the tibble
+  for (var in num_vars){
+    raw_data_tbl[[var]] <- as.numeric(raw_data_tbl[[var]])
+  } 
   
-  # turn vars into numeric values or time values (use the middle of the 
-  # time period) where appropriate.
+  # call helper function to convert JWAP, JWDP to time values
+  census_clean_tbl <- raw_data_tbl ##TEMPORARY - replace with function call when written
   
   # Assign class for custom methods
-  # class(your_tibble) <- c("census", class(your_tibble)
+  class(census_clean_tbl) <- c("census", class(census_clean_tbl))
+
+  # return clean tibble
+  return(census_clean_tbl)
   
 }
 
