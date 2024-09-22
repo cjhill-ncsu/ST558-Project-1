@@ -129,8 +129,13 @@ get_subset_code <- function(geography, subset) {
   
   if (geography == "Region") {
     return(region_codes[[subset]])  
+    
   } else if (geography == "Division") {
     return(division_codes[[subset]])  
+    
+  } else if (geography == "State") {
+    # currently taking state code from user
+    return(subset)
   }
 }
 
@@ -161,13 +166,10 @@ build_query_url <- function(year = 2022,
     # If a subset is provided, format as "for={geography}:{subset}"
     if (!is.null(subset)) {
       # Subsets need to be numeric codes. 
-      # We are assuming state codes are numeric from user
-      if (geography != "State") 
-        subset <- get_subset_code(geography, subset)
+      subset <- get_subset_code(geography, subset)
       
       geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
     } 
-    # If no subset is provided, format as "for={geography}:*"
     else {
       geography_query <- paste0("for=", gsub(" ", "%20", geography), ":*")
     }
@@ -180,7 +182,6 @@ build_query_url <- function(year = 2022,
     final_url <- paste0(final_url, "&", geography_query)
   }
   
-  # Return the fully constructed URL
   return(final_url)
 }
 
