@@ -102,18 +102,42 @@ get_valid_geographical_levels <- function() {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Build a valid url
 # CHRIS
+# Build a valid URL for the Census API (assuming inputs are validated)
 build_query_url <- function(year = 2022, 
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
                             geography = "All", 
                             subset = NULL) {
-  
 
+  base_url <- paste0("https://api.census.gov/data/", year, "/acs/acs1/pums?")
   
+  # Handle numeric and categorical inputs
+  query_vars <- c(numeric_vars, categorical_vars)
+  query_string <- paste0("get=", paste(query_vars, collapse = ","))
   
+  # Handle geography levels ("All" will require no 'for' clause)
+  geography_query <- ""
   
+  if (geography != "All") {
+
+    geography_query <- paste0("for=", gsub(" ", "%20", geography), ":*")
+    
+    # Handle subsets
+    if (!is.null(subset)) {
+      geography_query <- paste0(geography_query, "&in=", subset)
+    }
+  }
+  
+  # Concatenate base_url, query_string, and geography_query
+  final_url <- paste0(base_url, query_string)
+  
+  if (geography_query != "") {
+    final_url <- paste0(final_url, "&", geography_query)
+  }
+  
+  # Return the fully constructed URL
+  return(final_url)
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
