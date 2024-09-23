@@ -96,6 +96,25 @@ validate_subset <- function(geography, subset) {
                paste(valid_options[[geography]], collapse = ", ")))
 }
 
+# Check we got something from the API using GET(URL)
+validate_url_response <- function(response) {
+  
+  is_success <- http_status(response)$category == "Success"
+  
+  response_content <- content(response, as = "text")
+  
+  has_content <- !is.null(response_content) && nchar(response_content) > 0
+  
+  if (!is_success || !has_content) {
+    stop("API request failed: ", 
+         if (!is_success) 
+           http_status(census_raw)$message 
+         else 
+           "Empty response from API."
+         )
+  }
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 get_valid_numeric_vars <- function() {
@@ -199,16 +218,21 @@ is_url_valid <- function(url) {
   return(is_success && has_content)
 }
 
-urlTest <- build_query_url(year = 2021, 
-                        numeric_vars = c("AGEP", "PWGTP", "JWAP"), 
-                        categorical_vars = c("SEX", "SCHL"), 
-                        geography = "All", 
-                        subset = NULL)
+year <- 2015
+num_vars <- c("AGEP", "PWGTP", "GRPIP", "JWAP") 
+cat_vars <- c("SEX", "HHL")
+geo <- "State"
+subset <- 37
+
+urlTest <- build_query_url(year, 
+                        num_vars, 
+                        cat_vars, 
+                        geo, 
+                        subset)
 
 cat("Testing:\n", urlTest, "\n")
 result <- is_url_valid(urlTest)
 cat("URL is valid: ", result, "\n")
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -487,9 +511,18 @@ plot.census(defaults, "AGEP", "SEX")
 # Set variables for testing
 year <- 2015
 num_vars <- c("AGEP", "PWGTP", "GRPIP", "JWAP") 
-cat_vars <- c("SEX")
+cat_vars <- c("SEX", "HHL")
 geo <- "State"
 subset <- 07
+
+test_vars <- get_data_tibble_from_census_api(year,
+                                             num_vars,
+                                             cat_vars,
+                                             geo,
+                                             subset)
+test_vars
+test_vars |> summary.census()
+test_vars |> plot.census()
 
 
 
