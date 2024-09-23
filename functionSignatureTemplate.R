@@ -102,7 +102,6 @@ validate_url_response <- function(response) {
   is_success <- http_status(response)$category == "Success"
   
   response_content <- content(response, as = "text")
-  
   has_content <- !is.null(response_content) && nchar(response_content) > 0
   
   if (!is_success || !has_content) {
@@ -113,6 +112,8 @@ validate_url_response <- function(response) {
            "Empty response from API."
          )
   }
+  
+  print("API request successful")
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -427,7 +428,7 @@ summary.census(test_tibble)
 plot.census <- function(data, 
                         numeric_var, 
                         categorical_var,
-                        sample_size = 100000) {
+                        sample_size = 10000) {
   
   # Check User inputs
   for (var in c(numeric_var, categorical_var, "PWGTP")) {
@@ -510,10 +511,10 @@ plot.census(defaults, "AGEP", "SEX")
 
 # Set variables for testing
 year <- 2015
-num_vars <- c("AGEP", "PWGTP", "GRPIP", "JWAP") 
+num_vars <- c("AGEP", "PWGTP", "GRPIP") 
 cat_vars <- c("SEX", "HHL")
 geo <- "State"
-subset <- 07
+subset <- 37
 
 test_vars <- get_data_tibble_from_census_api(year,
                                              num_vars,
@@ -522,10 +523,11 @@ test_vars <- get_data_tibble_from_census_api(year,
                                              subset)
 test_vars
 test_vars |> summary.census()
-test_vars |> plot.census()
+test_vars |> plot.census(numeric_var = "GRPIP",
+                         categorical_var = "SEX")
 
-
-
+# It's Alive!!
+# things to address: times, empty requests, categories to factors
 
 
 
