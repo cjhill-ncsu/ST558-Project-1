@@ -256,24 +256,71 @@ json_to_raw_tbl_helper <- function(census_raw) {
 process_census_data <- function(raw_data_tbl) {
 
   # retrieve valid numeric vars as factor, keeping only the ones that exist in 
-  # the input raw data
+  # the input raw data, but exclude JWAP and JWDP (they will be handled separately)
   num_vars <- 
     as.factor(get_valid_numeric_vars()) |>
-    intersect(names(raw_data_tbl))
+    intersect(names(raw_data_tbl)) |>
+    setdiff(c("JWAP", "JWDP"))
 
-  # turn vars into numeric values in the tibble
+  # turn vars into numeric values in the tibble 
   for (var in num_vars){
     raw_data_tbl[[var]] <- as.numeric(raw_data_tbl[[var]])
   } 
   
-  # call helper function to convert JWAP, JWDP to time values
-  census_clean_tbl <- raw_data_tbl ##TEMPORARY - replace with function call when written
+  # check if there are time variables to convert
+  time_vars <- 
+    as.factor(c("JWAP", "JWDP")) |>
+    intersect(names(raw_data_tbl))
+
+  # get time references from API`
+  times_JWAP <- get_time_refs("JWAP")
+  times_JWDP <- get_time_refs("JWDP")
+  
+  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char)
+  
+  # join new JWAP/JWDP to table with proper times
+  
+  # TEMPORARY: copy to new clean tbl...this is here so code doesn't break 
+  census_clean_tbl <- raw_data_tbl
   
   # Assign class for custom methods
   class(census_clean_tbl) <- c("census", class(census_clean_tbl))
 
   # return clean tibble
   return(census_clean_tbl)
+  
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# helper function to get clean reference tibble for converting JWDP/JWAP to time
+#   possible url's:
+#     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWDP.json
+#     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWAP.json
+
+get_time_refs <- function(time_var) {
+  
+  # construct url from the time_var (JWDP or JWAP)
+  time_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
+                    time_var, ".json")
+  
+  # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
+  # then transpose the data to get key-value pair in columns
+  times_ref <- 
+    fromJSON(time_url)$values |>
+    bind_rows() |>
+    pivot_longer(cols = everything(), 
+                 names_to = "time_code", 
+                 values_to = "time_range")
+  
+  # get substring: isolate beginning of time interval (up to 2nd space), 
+  # convert to time, add 2 minutes (mid-interval)
+  
+  # add a numerical column to times_ref with correct time for each level
+  
+  
+  # return final clean ref table
+  return(times_ref)
   
 }
 
