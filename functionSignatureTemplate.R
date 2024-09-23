@@ -246,6 +246,8 @@ query_census_with_url <- function(url) {
   # retrieve data in list form from API
   census_raw <- httr::GET(url)
   
+  validate_url_response(census_raw)
+  
   # call helper function to turn API raw data into a raw tibble
   census_raw_tbl <- json_to_raw_tbl_helper(census_raw)
 
@@ -275,55 +277,44 @@ json_to_raw_tbl_helper <- function(census_raw) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper Function to Process and Clean Data 
 # KATY
-process_census_data <- function(census_data_tbl) {
+process_census_data <- function(raw_data_tbl) {
 
   # retrieve valid numeric vars as factor, keeping only the ones that exist in 
   # the input raw data, but exclude JWAP and JWDP (they will be handled separately)
   num_vars <- 
     as.factor(get_valid_numeric_vars()) |>
-    intersect(names(census_data_tbl)) |>
+    intersect(names(raw_data_tbl)) |>
     setdiff(c("JWAP", "JWDP"))
 
   # turn vars into numeric values in the tibble 
   for (var in num_vars){
-    census_data_tbl[[var]] <- as.numeric(census_data_tbl[[var]])
+    raw_data_tbl[[var]] <- as.numeric(raw_data_tbl[[var]])
   } 
   
   # check if there are time variables to convert
   time_vars <- 
     as.factor(c("JWAP", "JWDP")) |>
-    intersect(names(census_data_tbl))
-  
-  # call helper function to convert time codes to numeric time (won't run if 
-  # time_vars is empty)
-  for (time_code in time_vars) {
-    census_data_tbl <- convert_char_code_to_time(census_data_tbl, time_code)
-  }
-  
-  # Assign class for custom methods
-  class(census_data_tbl) <- c("census", class(census_data_tbl))
-
-  # return clean tibble
-  return(census_data_tbl)
-  
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# helper function to convert JWAP/JWDP code char columns to numeric time
-convert_char_code_to_time <- function(census_data_tbl, time_code) {
+    intersect(names(raw_data_tbl))
 
   # get time references from API`
-  times_reference <- get_time_refs(time_code)
-    
-  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char) - TEMPORARY?
+  times_JWAP <- get_time_refs("JWAP")
+  times_JWDP <- get_time_refs("JWDP")
+  
+  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char)
   
   # join new JWAP/JWDP to table with proper times
-  census_data_tbl <- census_data_tbl |>
-    left_join(times_reference, 
-              join_by("JWAP" == time_code)) ###PROBLEM: reference by variable
   
-  return(census_data_tbl)
+  # TEMPORARY: copy to new clean tbl...this is here so code doesn't break 
+  census_clean_tbl <- raw_data_tbl
+  
+  # Assign class for custom methods
+  class(census_clean_tbl) <- c("census", class(census_clean_tbl))
+
+  # return clean tibble
+  return(census_clean_tbl)
+  
 }
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # helper function to get clean reference tibble for converting JWDP/JWAP to time
@@ -489,11 +480,11 @@ query_multiple_years <- function(years,
   for (yr in years) {
     
     # retrieve single year data tibble
-    census_single_yr <- get_data_tibble_from_api(yr,
-                                                 numeric_vars,
-                                                 categorical_vars,
-                                                 geography,
-                                                 subset)
+    census_single_yr <- get_data_tibble_from_census_api(yr,
+                                                        numeric_vars,
+                                                        categorical_vars,
+                                                        geography,
+                                                        subset)
     
     # append year to the tibble
     census_single_yr_tbl <- tibble(Year = yr, census_single_yr)
@@ -523,7 +514,7 @@ plot.census(defaults, "AGEP", "SEX")
 
 # Set variables for testing
 year <- 2015
-num_vars <- c("AGEP", "PWGTP", "GRPIP") 
+num_vars <- c("AGEP", "PWGTP", "JWAP") 
 cat_vars <- c("SEX", "HHL")
 geo <- "State"
 subset <- 37
@@ -542,9 +533,12 @@ test_vars |> plot.census(numeric_var = "GRPIP",
 # things to address: times, empty requests, categories to factors
 
 
+# TEST MULTI YEAR
+years <- c(2010:2015)
 
-
-
+query_multiple_years(years,
+                     geography = "State",
+                     subset = 37)
 
 
 
