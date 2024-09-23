@@ -5,6 +5,7 @@
 #          API. We’ll create generic functions to automatically summarize and 
 #          plot certain returned data. 
 
+# testing the branch changes
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load required libraries 
 library(tidyverse)
