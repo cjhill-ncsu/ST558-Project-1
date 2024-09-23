@@ -221,16 +221,18 @@ query_census_with_url <- function(url) {
   census_raw <- httr::GET(url)
   
   # call helper function to turn API raw data into a raw tibble
-  census_raw_tbl <- query_helper(census_raw)
+  census_raw_tbl <- json_to_raw_tbl_helper(census_raw)
 
-  # a bunch of other stuff to clean tibble
+  # call helper function to clean tibble
+  census_clean_tbl <- process_census_data(census_raw_tbl)
   
   # return final clean tibble
+  return(census_clean_tbl)
   
 }
 
 # helper function for query_census_with_url: put json stuff into raw tibble (all char)
-query_helper <- function(census_raw) {
+json_to_raw_tbl_helper <- function(census_raw) {
   
   # convert JSON string raw data to data frame (first row are column names)
   parsed_census <- as.data.frame(fromJSON(rawToChar(census_raw$content)))
@@ -247,16 +249,74 @@ query_helper <- function(census_raw) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper Function to Process and Clean Data 
 # KATY
-process_census_data <- function(raw_data, 
-                                numeric_vars, 
-                                categorical_vars) {
-  # Parse JSON data
+process_census_data <- function(raw_data_tbl) {
+
+  # retrieve valid numeric vars as factor, keeping only the ones that exist in 
+  # the input raw data, but exclude JWAP and JWDP (they will be handled separately)
+  num_vars <- 
+    as.factor(get_valid_numeric_vars()) |>
+    intersect(names(raw_data_tbl)) |>
+    setdiff(c("JWAP", "JWDP"))
+
+  # turn vars into numeric values in the tibble 
+  for (var in num_vars){
+    raw_data_tbl[[var]] <- as.numeric(raw_data_tbl[[var]])
+  } 
   
-  # turn vars into numeric values or time values (use the middle of the 
-  # time period) where appropriate.
+  # check if there are time variables to convert
+  time_vars <- 
+    as.factor(c("JWAP", "JWDP")) |>
+    intersect(names(raw_data_tbl))
+
+  # get time references from API`
+  times_JWAP <- get_time_refs("JWAP")
+  times_JWDP <- get_time_refs("JWDP")
+  
+  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char)
+  
+  # join new JWAP/JWDP to table with proper times
+  
+  # TEMPORARY: copy to new clean tbl...this is here so code doesn't break 
+  census_clean_tbl <- raw_data_tbl
   
   # Assign class for custom methods
-  # class(your_tibble) <- c("census", class(your_tibble)
+  class(census_clean_tbl) <- c("census", class(census_clean_tbl))
+
+  # return clean tibble
+  return(census_clean_tbl)
+  
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# helper function to get clean reference tibble for converting JWDP/JWAP to time
+#   possible url's:
+#     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWDP.json
+#     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWAP.json
+
+get_time_refs <- function(time_var) {
+  
+  # construct url from the time_var (JWDP or JWAP)
+  time_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
+                    time_var, ".json")
+  
+  # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
+  # then transpose the data to get key-value pair in columns
+  times_ref <- 
+    fromJSON(time_url)$values |>
+    bind_rows() |>
+    pivot_longer(cols = everything(), 
+                 names_to = "time_code", 
+                 values_to = "time_range")
+  
+  # get substring: isolate beginning of time interval (up to 2nd space), 
+  # convert to time, add 2 minutes (mid-interval)
+  
+  # add a numerical column to times_ref with correct time for each level
+  
+  
+  # return final clean ref table
+  return(times_ref)
   
 }
 
@@ -354,15 +414,41 @@ plot.census_data <- function(data_as_tibble,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Function for Querying Multiple Years
 # KATY
+# NOTE: I have not tested this, it may not work.
 query_multiple_years <- function(years, 
                                  numeric_vars = c("AGEP", "PWGTP"), 
                                  categorical_vars = c("SEX"), 
                                  geography = "All", 
                                  subset = NULL) {
   
-  # call the user interface for each year
+  # create empty list to store data frames
+  multi_year_list <- list()
   
-
+  # call the user interface for each year
+  for (yr in years) {
+    
+    # retrieve single year data tibble
+    census_single_yr <- get_data_tibble_from_api(yr,
+                                                 numeric_vars,
+                                                 categorical_vars,
+                                                 geography,
+                                                 subset)
+    
+    # append year to the tibble
+    census_single_yr_tbl <- tibble(Year = yr, census_single_yr)
+    
+    # check how many elements are currently in list
+    elements <- length(multi_year_list)
+    
+    # insert the tbl into the list as the last element
+    multi_year_list[[elements + 1]] <- census_single_yr_tbl
+  }
+  
+  # union of all year-specific results
+  census_multi_year_tbl <- bind_rows(multi_year_list)
+  
+  # return the final tibble
+  return(census_multi_year_tbl)
   
 }
 
