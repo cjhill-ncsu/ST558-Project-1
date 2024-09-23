@@ -13,7 +13,7 @@ library(httr)
 
 # User interface to take inputs and return fully processed data tibble
 # CHRIS
-get_data_tibble_from_api <- function(year = 2022, 
+get_data_tibble_from_census_api <- function(year = 2022, 
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
                                      geography = "All", 
@@ -30,9 +30,8 @@ get_data_tibble_from_api <- function(year = 2022,
                   numeric_vars,
                   categorical_vars,
                   geography,
-                  subset) 
-  
-  #|> query_census_with_url |> process_census_data |> etc
+                  subset) |> 
+    query_census_with_url()
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -182,6 +181,7 @@ build_query_url <- function(year = 2022,
     final_url <- paste0(final_url, "&", geography_query)
   }
   
+  cat("URL: ", final_url)
   return(final_url)
 }
 
@@ -323,9 +323,9 @@ get_time_refs <- function(time_var) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Summary Function for Census Class
 # CHRIS
-summary.census_data <- function(data, 
-                                numeric_vars = NULL, 
-                                categorical_vars = NULL) {
+summary.census <- function(data, 
+                           numeric_vars = NULL, 
+                           categorical_vars = NULL) {
   
   # Determine the variables that are actually in the dataset
   valid_numeric_vars <- get_valid_numeric_vars()
@@ -395,20 +395,44 @@ class(test_tibble) <- c("census", class(test_tibble))
 
 str(test_tibble)
 
-summary.census_data(test_tibble)
+summary.census(test_tibble)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Plotting Function for Census Class 
-plot.census_data <- function(data_as_tibble, 
-                             cat_var, 
-                             num_var) {
+plot.census <- function(data, 
+                        numeric_var, 
+                        categorical_var,
+                        sample_size = 100000) {
   
-  ggplot(data_as_tibble,
-         aes(x = get(cat_var), 
-             y = get(num_var), 
+  # Check User inputs
+  for (var in c(numeric_var, categorical_var, "PWGTP")) {
+    if (!var %in% names(data)) {
+      stop(paste("The variable", var, "is not present in the dataset. ",
+                 "Select from: ", paste(names(data), collapse = ", ")))
+    }
+  }
+  
+  # If the dataset is large, take a random sample
+  if (nrow(data) > sample_size) {
+    message(nrow(data), " found in dataset. Sampled ", 
+            sample_size, " rows for plotting.")
+    set.seed(123)  # For reproducibility
+    data <- data |> sample_n(sample_size)
+  }
+  
+  # Plot with ggplot2
+  ggplot(data, 
+         aes(x = get(categorical_var), 
+             y = get(numeric_var), 
              weight = PWGTP)) +
-    geom_boxplot()
+    geom_boxplot() +
+    labs(
+      title = paste("Boxplot of", numeric_var, "by", categorical_var),
+      x = categorical_var, 
+      y = numeric_var 
+    ) +
+    theme_minimal()
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -451,6 +475,32 @@ query_multiple_years <- function(years,
   return(census_multi_year_tbl)
   
 }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# TEST SINGLE YEAR
+
+# First, the defaults
+defaults <- get_data_tibble_from_census_api()
+summary.census(defaults)
+plot.census(defaults, "AGEP", "SEX")
+
+# Set variables for testing
+year <- 2015
+num_vars <- c("AGEP", "PWGTP", "GRPIP", "JWAP") 
+cat_vars <- c("SEX")
+geo <- "State"
+subset <- 07
+
+
+
+
+
+
+
+
+
+
+
 
 
 
