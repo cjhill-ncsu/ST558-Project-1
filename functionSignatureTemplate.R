@@ -5,12 +5,12 @@
 #          API. We’ll create generic functions to automatically summarize and 
 #          plot certain returned data. 
 
-# testing the branch changes
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load required libraries 
 library(tidyverse)
 library(jsonlite)
 library(httr) 
+
 
 # User interface to take inputs and return fully processed data tibble
 # CHRIS
@@ -279,44 +279,55 @@ json_to_raw_tbl_helper <- function(census_raw) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Helper Function to Process and Clean Data 
 # KATY
-process_census_data <- function(raw_data_tbl) {
-
+process_census_data <- function(census_data_tbl) {
+  
   # retrieve valid numeric vars as factor, keeping only the ones that exist in 
   # the input raw data, but exclude JWAP and JWDP (they will be handled separately)
   num_vars <- 
     as.factor(get_valid_numeric_vars()) |>
-    intersect(names(raw_data_tbl)) |>
+    intersect(names(census_data_tbl)) |>
     setdiff(c("JWAP", "JWDP"))
-
+  
   # turn vars into numeric values in the tibble 
   for (var in num_vars){
-    raw_data_tbl[[var]] <- as.numeric(raw_data_tbl[[var]])
+    census_data_tbl[[var]] <- as.numeric(census_data_tbl[[var]])
   } 
   
   # check if there are time variables to convert
   time_vars <- 
     as.factor(c("JWAP", "JWDP")) |>
-    intersect(names(raw_data_tbl))
-
-  # get time references from API`
-  times_JWAP <- get_time_refs("JWAP")
-  times_JWDP <- get_time_refs("JWDP")
+    intersect(names(census_data_tbl))
   
-  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char)
-  
-  # join new JWAP/JWDP to table with proper times
-  
-  # TEMPORARY: copy to new clean tbl...this is here so code doesn't break 
-  census_clean_tbl <- raw_data_tbl
+  # call helper function to convert time codes to numeric time (won't run if 
+  # time_vars is empty)
+  for (time_code in time_vars) {
+    census_data_tbl <- convert_char_code_to_time(census_data_tbl, time_code)
+  }
   
   # Assign class for custom methods
-  class(census_clean_tbl) <- c("census", class(census_clean_tbl))
-
+  class(census_data_tbl) <- c("census", class(census_data_tbl))
+  
   # return clean tibble
-  return(census_clean_tbl)
+  return(census_data_tbl)
   
 }
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# helper function to convert JWAP/JWDP code char columns to numeric time
+convert_char_code_to_time <- function(census_data_tbl, time_code) {
+  
+  # get time references from API`
+  times_reference <- get_time_refs(time_code)
+  
+  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char) - TEMPORARY?
+  
+  # join new JWAP/JWDP to table with proper times
+  census_data_tbl <- census_data_tbl |>
+    left_join(times_reference, 
+              join_by("JWAP" == time_code)) ##TODO: reference by variable
+  
+  return(census_data_tbl)
+}
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # helper function to get clean reference tibble for converting JWDP/JWAP to time
