@@ -331,7 +331,7 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   # join new JWAP/JWDP to table with proper times
   census_data_tbl <- census_data_tbl |>
     left_join(times_reference) # natural join on time code
-  
+    
   # reassign tbl to drop old JWAP/JWDP coded column, rename cleaned column
   
   
@@ -344,11 +344,11 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
 #     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWDP.json
 #     https://api.census.gov/data/2022/acs/acs1/pums/variables/JWAP.json
 
-get_time_refs <- function(time_var) {
+get_time_refs <- function(time_code) {
   
-  # construct url from the time_var (JWDP or JWAP)
+  # construct url from the time_code (JWDP or JWAP)
   time_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
-                    time_var, ".json")
+                    time_code, ".json")
   
   # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
   # then transpose the data to get key-value pair in columns
@@ -362,11 +362,25 @@ get_time_refs <- function(time_var) {
   # convert 1st column (JWAP/JWDP) to numeric
   times_ref[[time_code]] <- as.numeric(times_ref[[time_code]])
   
-  # get substring: isolate beginning of time interval (up to 2nd space), 
-  # convert to time, add 2 minutes (mid-interval)
+  # filter on the row(s) where JWAP/JWDP == 0, change the value for time_range
+  # to missing (it is a string that can't be converted to time, starts with "N/A")
+  times_ref$time_range[times_ref[time_code] == 0] <- NA
+  
+  # set the number of minutes that will need to be added to be in middle of time
+  # interval. JWAP: 5 min intervals, add 2 mins. JWDP: 10 min intervals, add 5 mins
+  add_mins <-
+    case_when(
+      time_code == "JWAP" ~ 2,
+      time_code == "JWDP" ~ 5,
+      .default = 0
+    )
   
   # add a numerical column to times_ref with correct time for each level
-  times_ref[paste0(time_code, "_clean")] <- 0 ##TEMPORARY PLACEHOLDER
+  times_ref[paste0(time_code, "_clean")] <-
+    substr(times_ref$time_range, 1, 10) |>
+    toupper() |>                                 # change to upper-case
+    str_replace_all("[.]", "") |>                # remove periods
+    parse_date_time('%I:%M %p') + add_mins*60    # convert to date-time, add mins
   
   # return final clean ref table
   return(times_ref)
