@@ -328,15 +328,12 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   # get time references from API`
   times_reference <- get_time_refs(time_code)
   
-  # make a copy of the numerical code column
-  
-  
   # join new JWAP/JWDP to table with proper times
   census_data_tbl <- census_data_tbl |>
-    left_join(times_reference, 
-              join_by("JWAP" == time_code)) ##TODO: reference by variable
+    left_join(times_reference) # natural join on time code
   
-  # drop the copied column 
+  # reassign tbl to drop old JWAP/JWDP coded column, rename cleaned column
+  
   
   return(census_data_tbl)
 }
@@ -359,14 +356,17 @@ get_time_refs <- function(time_var) {
     fromJSON(time_url)$values |>
     bind_rows() |>
     pivot_longer(cols = everything(), 
-                 names_to = "time_code", 
+                 names_to = time_code, 
                  values_to = "time_range")
+  
+  # convert 1st column (JWAP/JWDP) to numeric
+  times_ref[[time_code]] <- as.numeric(times_ref[[time_code]])
   
   # get substring: isolate beginning of time interval (up to 2nd space), 
   # convert to time, add 2 minutes (mid-interval)
   
   # add a numerical column to times_ref with correct time for each level
-  
+  times_ref[paste0(time_code, "_clean")] <- 0 ##TEMPORARY PLACEHOLDER
   
   # return final clean ref table
   return(times_ref)
