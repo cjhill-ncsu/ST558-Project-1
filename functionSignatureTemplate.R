@@ -280,13 +280,22 @@ json_to_raw_tbl_helper <- function(census_raw) {
 # Helper Function to Process and Clean Data 
 # KATY
 process_census_data <- function(census_data_tbl) {
+
+  # retrieve valid categorical variables
+  cat_vars <- 
+    as.factor(get_valid_categorical_vars()) |>
+    intersect(names(census_data_tbl))
   
+  # convert categorical variables to factors
+  for (var in cat_vars){
+    census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+  } 
+    
   # retrieve valid numeric vars as factor, keeping only the ones that exist in 
-  # the input raw data, but exclude JWAP and JWDP (they will be handled separately)
+  # the input raw data (note JWAP and JWDP will still need to be changed to times)
   num_vars <- 
     as.factor(get_valid_numeric_vars()) |>
-    intersect(names(census_data_tbl)) |>
-    setdiff(c("JWAP", "JWDP"))
+    intersect(names(census_data_tbl))
   
   # turn vars into numeric values in the tibble 
   for (var in num_vars){
@@ -301,7 +310,7 @@ process_census_data <- function(census_data_tbl) {
   # call helper function to convert time codes to numeric time (won't run if 
   # time_vars is empty)
   for (time_code in time_vars) {
-    census_data_tbl <- convert_char_code_to_time(census_data_tbl, time_code)
+    census_data_tbl <- convert_num_code_to_time(census_data_tbl, time_code)
   }
   
   # Assign class for custom methods
@@ -313,18 +322,21 @@ process_census_data <- function(census_data_tbl) {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# helper function to convert JWAP/JWDP code char columns to numeric time
-convert_char_code_to_time <- function(census_data_tbl, time_code) {
+# helper function to convert JWAP/JWDP code columns to numeric time
+convert_num_code_to_time <- function(census_data_tbl, time_code) {
   
   # get time references from API`
   times_reference <- get_time_refs(time_code)
   
-  # rename current JWAP/JWDP columns (JWAP_char/JWDP_char) - TEMPORARY?
+  # make a copy of the numerical code column
+  
   
   # join new JWAP/JWDP to table with proper times
   census_data_tbl <- census_data_tbl |>
     left_join(times_reference, 
               join_by("JWAP" == time_code)) ##TODO: reference by variable
+  
+  # drop the copied column 
   
   return(census_data_tbl)
 }
