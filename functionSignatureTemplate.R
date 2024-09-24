@@ -37,6 +37,8 @@ get_data_tibble_from_census_api <- function(year = 2022,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# TODO: Handle variable case sensitivity
+
 # Year must be between 2010 and 2022.
 validate_year <- function(year){
   
@@ -385,6 +387,10 @@ summary.census <- function(data,
   for (var in numeric_vars) {
     numeric_vector <- data[[var]]
     
+    
+    # TODO: Check summary behavior with Dates...Handle or Omit
+    
+    
     # Calculate weighted mean and standard deviation
     weighted_sample_mean <- sum(numeric_vector * weight, na.rm = TRUE) / 
                           sum(weight, na.rm = TRUE)
@@ -509,6 +515,7 @@ query_multiple_years <- function(years,
 
 # First, the defaults
 defaults <- get_data_tibble_from_census_api()
+defaults
 summary.census(defaults)
 plot.census(defaults, "AGEP", "SEX")
 
@@ -530,7 +537,7 @@ test_vars |> plot.census(numeric_var = "GRPIP",
                          categorical_var = "SEX")
 
 # It's Alive!!
-# things to address: times, empty requests, categories to factors
+# things to address: times, categories to factors
 
 
 # TEST MULTI YEAR
