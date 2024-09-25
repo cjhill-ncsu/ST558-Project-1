@@ -419,13 +419,14 @@ summary.census <- function(data,
   
   weight <- data$PWGTP
   summary_list <- list()
-  
+
   # Summarize numeric variables
   for (var in numeric_vars) {
     numeric_vector <- data[[var]]
     
     
-    # TODO: Check summary behavior with Dates...Handle or Omit
+    # TODO: Check summary behavior with Dates...Handle or Omit 
+    # JWAP JWDP both numeric and categorical vars?!?
     
     
     # Calculate weighted mean and standard deviation
@@ -460,7 +461,8 @@ summary.census <- function(data,
 test_tibble <- tibble(
   AGEP = as.numeric(c(25, 30, 45, 22, 28, 35)),    
   SEX = as.factor(c("Male", "Female", "Female", "Male", "Male", "Female")),  
-  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5))
+  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5)),
+  JWAP = as.numeric(c(1, 2, 1, 0, 2, 1))
 )
 class(test_tibble) <- c("census", class(test_tibble))
 
@@ -570,7 +572,7 @@ test_vars <- get_data_tibble_from_census_api(year,
                                              subset)
 test_vars
 test_vars |> summary.census()
-test_vars |> plot.census(numeric_var = "GRPIP",
+test_vars |> plot.census(numeric_var = "JWAP",
                          categorical_var = "SEX")
 
 # It's Alive!!
