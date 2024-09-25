@@ -380,7 +380,13 @@ get_time_refs <- function(time_code) {
     substr(times_ref$time_range, 1, 10) |>
     toupper() |>                                 # change to upper-case
     str_replace_all("[.]", "") |>                # remove periods
-    parse_date_time('%I:%M %p') + add_mins*60    # convert to date-time, add mins
+    parse_date_time('%I:%M %p', 
+                    tz = "EST") + add_mins*60    # convert to date-time, add mins
+
+  # convert format from date-time to time (note: this is separate from the above
+  # pipe chain because for some reason it didn't go to the time data type)
+  times_ref[paste0(time_code, "_clean")] <-
+    hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
   
   # return final clean ref table
   return(times_ref)
