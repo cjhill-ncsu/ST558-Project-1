@@ -9,7 +9,7 @@
 # Load required libraries 
 library(tidyverse)
 library(jsonlite)
-library(httr) 
+library(httr)
 
 
 # User interface to take inputs and return fully processed data tibble
@@ -248,6 +248,7 @@ query_census_with_url <- function(url) {
   # retrieve data in list form from API
   census_raw <- httr::GET(url)
   
+  # check that data was returned
   validate_url_response(census_raw)
   
   # call helper function to turn API raw data into a raw tibble
@@ -302,7 +303,7 @@ process_census_data <- function(census_data_tbl) {
     census_data_tbl[[var]] <- as.numeric(census_data_tbl[[var]])
   } 
   
-  # check if there are time variables to convert
+  # collect the time variables to convert
   time_vars <- 
     as.factor(c("JWAP", "JWDP")) |>
     intersect(names(census_data_tbl))
@@ -332,8 +333,12 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   census_data_tbl <- census_data_tbl |>
     left_join(times_reference) # natural join on time code
     
-  # reassign tbl to drop old JWAP/JWDP coded column, rename cleaned column
+  # assign the cleaned time values to the JWAP/JWDP column
+  census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
   
+  # Drop the columns from the time reference table
+  census_data_tbl <- census_data_tbl |>
+    select(-one_of(paste0(time_code, "_clean"), "time_range"))
   
   return(census_data_tbl)
 }
@@ -383,8 +388,7 @@ get_time_refs <- function(time_code) {
     parse_date_time('%I:%M %p', 
                     tz = "EST") + add_mins*60    # convert to date-time, add mins
 
-  # convert format from date-time to time (note: this is separate from the above
-  # pipe chain because for some reason it didn't go to the time data type)
+  # convert format from date-time to time (reference by [[]] not [])
   times_ref[paste0(time_code, "_clean")] <-
     hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
   
