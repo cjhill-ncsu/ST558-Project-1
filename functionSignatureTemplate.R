@@ -530,6 +530,11 @@ plot.census <- function(data,
     }
   }
   
+  # Remove NA records
+  data <- data |>
+    filter(!is.na(.data[[numeric_var]]) & 
+             !is.na(.data[[categorical_var]]))
+  
   # If the dataset is large, take a random sample
   if (nrow(data) > sample_size) {
     message(nrow(data), " found in dataset. Sampled ", 
