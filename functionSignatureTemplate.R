@@ -185,8 +185,8 @@ get_subset_code <- function(geography, subset) {
 build_query_url <- function(year = 2022, 
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
-                            geography = "All", 
-                            subset = NULL) {
+                            geography = "State", 
+                            subset = 08) {
 
   dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
   
