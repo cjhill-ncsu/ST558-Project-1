@@ -17,14 +17,13 @@ get_data_tibble_from_census_api <- function(year = 2022,
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
                                      geography = "State", 
-                                     subset = 08) {
-
+                                     subset = 8) {
+  
   # validate the user inputs
   validate_year(year)
   validate_numeric_vars(numeric_vars)
   validate_categorical_vars(categorical_vars)
-  validate_geography_and_subset(geography,
-                                subset)
+  validate_geography_and_subset(geography, subset)
   
   # Send inputs to retrieve data
   build_query_url(year,
@@ -99,7 +98,7 @@ validate_geography_and_subset <- function(geography, subset) {
                            "East North Central", "West North Central", 
                            "South Atlantic", "East South Central", 
                            "West South Central", "Mountain", "Pacific")),
-      STATE = sprintf("%02d", 1:56) 
+      STATE = c(1:56)
     )
     
     # Validate subset based on the provided geography
@@ -184,7 +183,7 @@ build_query_url <- function(year = 2022,
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
                             geography = "State", 
-                            subset = 08) {
+                            subset = 8) {
 
   dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
   
@@ -520,7 +519,7 @@ summary.census(test_tibble)
 plot.census <- function(data, 
                         numeric_var, 
                         categorical_var,
-                        sample_size = 10000) {
+                        sample_size = 100000) {
   
   # Check User inputs
   for (var in c(numeric_var, categorical_var, "PWGTP")) {
@@ -564,8 +563,8 @@ plot.census <- function(data,
 query_multiple_years <- function(years, 
                                  numeric_vars = c("AGEP", "PWGTP"), 
                                  categorical_vars = c("SEX"), 
-                                 geography = "All", 
-                                 subset = NULL) {
+                                 geography = "State", 
+                                 subset = 8) {
   
   # create empty list to store data frames
   multi_year_list <- list()
@@ -631,24 +630,3 @@ years <- c(2010:2015)
 query_multiple_years(years,
                      geography = "State",
                      subset = 37)
-
-
-
-
-
-
-
-# Convert JWAP to numeric (in seconds)
-time_in_seconds <- as.numeric(test_vars$JWAP)
-
-# Check for any missing or non-finite values
-time_in_seconds <- time_in_seconds[!is.na(time_in_seconds) & is.finite(time_in_seconds)]
-
-# Convert to minutes for better interpretation
-time_in_minutes <- time_in_seconds / 60
-
-# Create a histogram with ggplot2
-ggplot(data = data.frame(time_in_minutes), aes(x = time_in_minutes)) +
-  geom_histogram(binwidth = 10, fill = "blue", color = "black", alpha = 0.7) +  # 10-minute bins
-  labs(x = "Time (minutes)", y = "Count", title = "Histogram of JWAP (Arrival Times)") +
-  theme_minimal()
