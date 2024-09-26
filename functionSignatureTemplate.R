@@ -17,8 +17,8 @@ library(httr)
 get_data_tibble_from_census_api <- function(year = 2022, 
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
-                                     geography = "All", 
-                                     subset = NULL) {
+                                     geography = "State", 
+                                     subset = 08) {
 
   # validate the user inputs
   validate_year(year)
