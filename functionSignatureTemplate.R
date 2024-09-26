@@ -10,10 +10,9 @@
 library(tidyverse)
 library(jsonlite)
 library(httr)
-
+library(hms)
 
 # User interface to take inputs and return fully processed data tibble
-# CHRIS
 get_data_tibble_from_census_api <- function(year = 2022, 
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
@@ -132,20 +131,20 @@ validate_url_response <- function(response) {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# GETTERS
 
 get_valid_numeric_vars <- function() {
   c("AGEP", "PWGTP", "GASP", "GRPIP", "JWAP", "JWDP", "JWMNP")
 }
 
 get_valid_categorical_vars <- function() {
-  c("SEX", "FER", "HHL", "HISPEED", "JWAP", "JWDP", "JWTRNS", "SCH", "SCHL")
+  c("SEX", "FER", "HHL", "HISPEED", "JWTRNS", "SCH", "SCHL")
 }
 
 get_valid_geography_levels <- function() {
   c("All", "Region", "Division", "State")
 }
 
-# Function to get the appropriate subset code for Regions or Divisions
 get_subset_code <- function(geography, subset) {
   
   # Mappings for regions and divisions
@@ -180,8 +179,7 @@ get_subset_code <- function(geography, subset) {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CHRIS
-# Build a valid URL for the Census API (assuming inputs are validated)
+# Build a valid URL for the Census API
 build_query_url <- function(year = 2022, 
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
@@ -421,7 +419,6 @@ get_time_refs <- function(time_code) {
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Summary Function for Census Class
-# CHRIS
 summary.census <- function(data, 
                            numeric_vars = NULL, 
                            categorical_vars = NULL) {
@@ -430,15 +427,17 @@ summary.census <- function(data,
   valid_numeric_vars <- get_valid_numeric_vars()
   valid_categorical_vars <- get_valid_categorical_vars()
   
-  numeric_vars_in_data <- intersect(names(data), valid_numeric_vars)
-  categorical_vars_in_data <- intersect(names(data), valid_categorical_vars)
+  data_names <- toupper(names(data))
+  
+  numeric_vars_in_data <- intersect(data_names, valid_numeric_vars)
+  categorical_vars_in_data <- intersect(data_names, valid_categorical_vars)
   
   # Default: Summarize all numeric variables except PWGTP in dataset
   if (is.null(numeric_vars)) {
     numeric_vars <- numeric_vars_in_data[numeric_vars_in_data != "PWGTP"]
   } else {
     # otherwise filter only for those provided
-    numeric_vars <- intersect(numeric_vars, numeric_vars_in_data)
+    numeric_vars <- intersect(toupper(numeric_vars), numeric_vars_in_data)
   }
   
   # Default: Summarize all categorical variables in dataset
@@ -446,7 +445,8 @@ summary.census <- function(data,
     categorical_vars <- categorical_vars_in_data
   } else {
     # otherwise filter only for those provided
-    categorical_vars <- intersect(categorical_vars, categorical_vars_in_data)
+    categorical_vars <- intersect(toupper(categorical_vars),
+                                  categorical_vars_in_data)
   }
   
   weight <- data$PWGTP
@@ -454,18 +454,30 @@ summary.census <- function(data,
 
   # Summarize numeric variables
   for (var in numeric_vars) {
-    numeric_vector <- data[[var]]
     
+    # Check if the variable is a time variable
+    is_time_var <- var %in% c("JWAP", "JWDP")
     
-    # TODO: Check summary behavior with Dates...Handle or Omit 
-    # JWAP JWDP both numeric and categorical vars?!?
-    
+    if (is_time_var) {
+      # Convert time to seconds
+      numeric_vector <- as.numeric(data[[var]])
+    } else if (is.numeric(data[[var]])) {
+      numeric_vector <- data[[var]]
+    } else {
+      stop("Unexpected non-numeric variable found for variable: ", var)
+    }
     
     # Calculate weighted mean and standard deviation
     weighted_sample_mean <- sum(numeric_vector * weight, na.rm = TRUE) / 
-                          sum(weight, na.rm = TRUE)
+                              sum(weight, na.rm = TRUE)
     sample_sd <- sqrt(sum((numeric_vector^2) * weight, na.rm = TRUE) / 
-                          sum(weight, na.rm = TRUE) - weighted_sample_mean^2)
+                        sum(weight, na.rm = TRUE) - weighted_sample_mean^2)
+    
+    if (is_time_var) {
+      # Convert the results back to hms
+      weighted_sample_mean <- as_hms(weighted_sample_mean) 
+      sample_sd <- as_hms(sample_sd)
+    }
     
     # Store the results
     summary_list[[var]] <- list(
@@ -473,6 +485,7 @@ summary.census <- function(data,
       sd = sample_sd
     )
   }
+  
   
   # Summarize categorical variables
   for (var in categorical_vars) {
@@ -493,8 +506,7 @@ summary.census <- function(data,
 test_tibble <- tibble(
   AGEP = as.numeric(c(25, 30, 45, 22, 28, 35)),    
   SEX = as.factor(c("Male", "Female", "Female", "Male", "Male", "Female")),  
-  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5)),
-  JWAP = as.numeric(c(1, 2, 1, 0, 2, 1))
+  PWGTP = as.numeric(c(1.5, 2.0, 1.0, 0.5, 2.0, 1.5))
 )
 class(test_tibble) <- c("census", class(test_tibble))
 
@@ -590,7 +602,7 @@ defaults
 summary.census(defaults)
 plot.census(defaults, "AGEP", "SEX")
 
-# Set variables for testing
+# Set variables
 year <- 2015
 num_vars <- c("AGEP", "PWGTP", "JWAP") 
 cat_vars <- c("SEX", "HHL")
@@ -607,9 +619,6 @@ test_vars |> summary.census()
 test_vars |> plot.census(numeric_var = "JWAP",
                          categorical_var = "SEX")
 
-# It's Alive!!
-# things to address: times, categories to factors
-
 
 # TEST MULTI YEAR
 years <- c(2010:2015)
@@ -624,3 +633,17 @@ query_multiple_years(years,
 
 
 
+# Convert JWAP to numeric (in seconds)
+time_in_seconds <- as.numeric(test_vars$JWAP)
+
+# Check for any missing or non-finite values
+time_in_seconds <- time_in_seconds[!is.na(time_in_seconds) & is.finite(time_in_seconds)]
+
+# Convert to minutes for better interpretation
+time_in_minutes <- time_in_seconds / 60
+
+# Create a histogram with ggplot2
+ggplot(data = data.frame(time_in_minutes), aes(x = time_in_minutes)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black", alpha = 0.7) +  # 10-minute bins
+  labs(x = "Time (minutes)", y = "Count", title = "Histogram of JWAP (Arrival Times)") +
+  theme_minimal()
