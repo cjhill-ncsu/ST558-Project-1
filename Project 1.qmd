@@ -1,26 +1,38 @@
 ---
-title: "Project1"
+title: "Query Functions for Public Use Microdata Sample Census API"
+author:
+  - name: "Katy Kearns"
+  - name: "Chris Hill"
+date: "Wednesday, October 2, 2024"
 format: html
-editor: visual
 ---
 
-## Quarto
+\newpage
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+# Introduction
 
-## Running Code
+# Setting Things Up
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+### Collaboration Workflow
 
-```{r}
-1 + 1
-```
+# Data Processing
 
-You can add options to executable code like this
+### Input Validation
 
-```{r}
-#| echo: false
-2 * 2
-```
+### Building URL
 
-The `echo: false` option disables the printing of code (only output is displayed).
+### Processing the Response
+
+# Generic Class Functions
+
+### Summary
+
+### Plotting
+
+# Results
+
+### Single Year
+
+### Multi Year
+
+# Conclusion

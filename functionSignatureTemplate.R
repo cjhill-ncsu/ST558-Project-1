@@ -627,6 +627,4 @@ test_vars |> plot.census(numeric_var = "JWAP",
 # TEST MULTI YEAR
 years <- c(2010:2015)
 
-query_multiple_years(years,
-                     geography = "State",
-                     subset = 37)
+query_multiple_years(years)
