@@ -294,20 +294,26 @@ json_to_raw_tbl_helper <- function(census_raw) {
 # KATY
 process_census_data <- function(census_data_tbl) {
 
-  # retrieve valid categorical variables
+  # retrieve valid categorical variables (exclude JWAP/JWDP; if converted from
+  # factor directly to numeric, this will make the values incorrect)
   cat_vars <- 
-    as.factor(get_valid_categorical_vars()) |>
-    intersect(names(census_data_tbl))
+    get_valid_categorical_vars() |>
+    intersect(names(census_data_tbl)) |>
+    setdiff(c("JWAP", "JWDP"))
   
   # convert categorical variables to factors
   for (var in cat_vars){
     census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
   } 
     
+  ## TESTING ONLY--copy the JWAP/JWDP columns
+  #census_data_tbl["JWAP_char"] <- census_data_tbl["JWAP"]
+  #census_data_tbl["JWDP_char"] <- census_data_tbl["JWDP"]
+  
   # retrieve valid numeric vars as factor, keeping only the ones that exist in 
   # the input raw data (note JWAP and JWDP will still need to be changed to times)
   num_vars <- 
-    as.factor(get_valid_numeric_vars()) |>
+    get_valid_numeric_vars() |>
     intersect(names(census_data_tbl))
   
   # turn vars into numeric values in the tibble 
@@ -345,6 +351,10 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   census_data_tbl <- census_data_tbl |>
     left_join(times_reference) # natural join on time code
     
+  ## TESTING ONLY---copy JWAP/JWDP and time_Range columns to review values
+  #census_data_tbl[paste0(time_code, "_raw")] <- census_data_tbl[time_code]
+  #census_data_tbl[paste0("time_range", time_code)] <- census_data_tbl["time_range"]
+  
   # assign the cleaned time values to the JWAP/JWDP column
   census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
   
@@ -376,7 +386,7 @@ get_time_refs <- function(time_code) {
                  names_to = time_code, 
                  values_to = "time_range")
   
-  # convert 1st column (JWAP/JWDP) to numeric
+  # convert 1st column (JWAP/JWDP) to numeric 
   times_ref[[time_code]] <- as.numeric(times_ref[[time_code]])
   
   # filter on the row(s) where JWAP/JWDP == 0, change the value for time_range
