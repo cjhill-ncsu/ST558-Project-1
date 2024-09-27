@@ -4,7 +4,9 @@ author:
   - name: "Katy Kearns"
   - name: "Chris Hill"
 date: "Wednesday, October 2, 2024"
-format: html
+format: 
+  html:
+    toc: true      
 ---
 
 \newpage
@@ -13,26 +15,28 @@ format: html
 
 # Setting Things Up
 
-### Collaboration Workflow
+## Collaboration Workflow
+
+## Libraries
 
 # Data Processing
 
-### Input Validation
+## Input Validation
 
-### Building URL
+## Building URL
 
-### Processing the Response
+## Processing the Response
 
 # Generic Class Functions
 
-### Summary
+## Summary
 
-### Plotting
+## Plotting
 
 # Results
 
-### Single Year
+## Single Year
 
-### Multi Year
+## Multi Year
 
 # Conclusion
