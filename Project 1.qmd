@@ -19,11 +19,291 @@ format:
 
 ## Libraries
 
+```{r}
+#| message: false
+# Load required libraries 
+library(tidyverse)
+library(jsonlite)
+library(httr)
+library(hms)
+```
+
+## Primary User Interface Methods
+
+### get_data_tibble_from_census_api
+
+```{r}
+# User interface to take inputs and return fully processed data tibble
+get_data_tibble_from_census_api <- function(year = 2022, 
+                                     numeric_vars = c("AGEP", "PWGTP"), 
+                                     categorical_vars = c("SEX"), 
+                                     geography = "State", 
+                                     subset = 8) {
+  
+  # validate the user inputs
+  validate_year(year)
+  validate_numeric_vars(numeric_vars)
+  validate_categorical_vars(categorical_vars)
+  validate_geography_and_subset(geography, subset)
+  
+  # Send inputs to retrieve data
+  build_query_url(year,
+                  numeric_vars,
+                  categorical_vars,
+                  geography,
+                  subset) |> 
+    query_census_with_url()
+}
+```
+
+### query_census_multiple_years
+
+```{r}
+# Function for Querying Multiple Years
+query_census_multiple_years <- function(years, 
+                                 numeric_vars = c("AGEP", "PWGTP"), 
+                                 categorical_vars = c("SEX"), 
+                                 geography = "State", 
+                                 subset = 8) {
+  
+  # create empty list to store data frames
+  multi_year_list <- list()
+  
+  # call the user interface for each year
+  for (yr in years) {
+    
+    # retrieve single year data tibble
+    census_single_yr <- get_data_tibble_from_census_api(yr,
+                                                        numeric_vars,
+                                                        categorical_vars,
+                                                        geography,
+                                                        subset)
+    
+    # append year to the tibble
+    census_single_yr_tbl <- tibble(Year = yr, census_single_yr)
+    
+    # check how many elements are currently in list
+    elements <- length(multi_year_list)
+    
+    # insert the tbl into the list as the last element
+    multi_year_list[[elements + 1]] <- census_single_yr_tbl
+  }
+  
+  # union of all year-specific results
+  census_multi_year_tbl <- bind_rows(multi_year_list)
+  
+  # return the final tibble
+  return(census_multi_year_tbl)
+}
+```
+
 # Data Processing
 
 ## Input Validation
 
-## Building URL
+```{r}
+# Year must be between 2010 and 2022.
+validate_year <- function(year){
+  
+  if (!(year %in% 2010:2022)) 
+    stop("Year must be between 2010 and 2022.")
+}
+```
+
+
+
+```{r}
+# PWGTP and at least one other valid numeric variable must be selected
+validate_numeric_vars <- function(numeric_vars) {
+  
+  # Not worried about case
+  valid_numeric_vars <- toupper(get_valid_numeric_vars())
+  numeric_vars <- toupper(numeric_vars)
+
+  numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
+  
+  if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
+    stop("PWGTP and at least one other numeric variable must be selected.")
+  }
+}
+```
+
+
+
+```{r}
+# At least one valid categorical variable must be selected
+validate_categorical_vars <- function(categorical_vars) {
+  
+  # Not worried about case
+  valid_categorical_vars <- toupper(get_valid_categorical_vars())
+  categorical_vars <- toupper(categorical_vars)
+  
+  categorical_vars <- intersect(categorical_vars, valid_categorical_vars)
+  
+  if (length(categorical_vars) < 1) {
+    stop("At least one valid categorical variable must be selected from: ", 
+         paste(valid_categorical_vars, collapse = ", "))
+  }
+}
+```
+
+
+
+```{r}
+# Geography & Subset Together
+validate_geography_and_subset <- function(geography, subset) {
+  
+  # Convert to uppercase for case-insensitive comparison
+  valid_geography_levels <- toupper(get_valid_geography_levels())
+  geography <- toupper(geography)
+  
+  # Validate the geography
+  if (!(geography %in% valid_geography_levels)) {
+    stop("Invalid geography level. Must be one of: ", 
+         paste(valid_geography_levels, collapse = ", "))
+  }
+  
+  # If geography is "ALL", subsetting is not allowed
+  if (geography == "ALL" && !is.null(subset)) {
+    stop("Subsetting is not allowed when geography is 'All'.")
+  }
+  
+  # Validate the subset matches geography
+  if (!is.null(subset)) {
+    valid_options <- list(
+      REGION = toupper(c("Northeast", "Midwest", "South", "West")),
+      DIVISION = toupper(c("New England", "Middle Atlantic", 
+                           "East North Central", "West North Central", 
+                           "South Atlantic", "East South Central", 
+                           "West South Central", "Mountain", "Pacific")),
+      STATE = c(1:56)
+    )
+    
+    # Validate subset based on the provided geography
+    if (!(toupper(subset) %in% valid_options[[geography]])) {
+      stop(paste("Invalid subset for", geography, ". Must be one of:", 
+                 paste(valid_options[[geography]], collapse = ", ")))
+    }
+  }
+}
+```
+
+## Utilities
+
+```{r}
+get_valid_numeric_vars <- function() {
+  c("AGEP", "PWGTP", "GASP", "GRPIP", "JWAP", "JWDP", "JWMNP")
+}
+
+get_valid_categorical_vars <- function() {
+  c("SEX", "FER", "HHL", "HISPEED", "JWTRNS", "SCH", "SCHL")
+}
+
+get_valid_geography_levels <- function() {
+  c("All", "Region", "Division", "State")
+}
+
+get_subset_code <- function(geography, subset) {
+  
+  # Mappings for regions and divisions
+  region_codes <- list(
+    "Northeast" = "1", 
+    "Midwest" = "2", 
+    "South" = "3", 
+    "West" = "4"
+  )
+  
+  division_codes <- list(
+    "New England" = "1", 
+    "Middle Atlantic" = "2", 
+    "East North Central" = "3", 
+    "West North Central" = "4", 
+    "South Atlantic" = "5", 
+    "East South Central" = "6", 
+    "West South Central" = "7", 
+    "Mountain" = "8", 
+    "Pacific" = "9"
+  )
+  
+  if (is.null(subset)) {
+    return("*")
+  }
+  
+  switch(geography,
+         "Region" = region_codes[[subset]],
+         "Division" = division_codes[[subset]],
+         "State" = subset,
+         stop("Invalid geography type"))
+}
+```
+
+
+```{r}
+# Check we got something from the API using GET(URL)
+validate_url_response <- function(response) {
+  
+  is_success <- http_status(response)$category == "Success"
+  
+  response_content <- content(response, as = "text")
+  has_content <- !is.null(response_content) && nchar(response_content) > 0
+  
+  if (!is_success || !has_content) {
+    stop("API request failed: ", 
+         if (!is_success) 
+           http_status(census_raw)$message 
+         else 
+           "Empty response from API."
+         )
+  }
+  
+  print("API request successful")
+}
+```
+
+
+## Building the URL
+
+```{r}
+# Build a valid URL for the Census API
+build_query_url <- function(year = 2022, 
+                            numeric_vars = c("AGEP", "PWGTP"), 
+                            categorical_vars = c("SEX"), 
+                            geography = "State", 
+                            subset = 8) {
+
+  dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
+  
+  base_url <- paste0("https://api.census.gov/data/", 
+                     year, "/acs/", dataset_type, "/pums?")
+  
+  
+  # Handle numeric and categorical inputs
+  query_vars <- c(numeric_vars, categorical_vars)
+  query_string <- paste0("get=", paste(query_vars, collapse = ","))
+  
+  # Handle geography levels ("All" will require no 'for' clause)
+  geography_query <- ""
+  
+  if (geography != "All") {
+
+    # Subsets need to be numeric codes. If null will return *
+    subset <- get_subset_code(geography, subset)
+    
+    geography_query <- paste0("for=", gsub(" ", "%20", geography), ":", subset)
+  }
+  
+  # Concatenate base_url, query_string, and geography_query
+  final_url <- paste0(base_url, query_string)
+  
+  if (geography_query != "") {
+    final_url <- paste0(final_url, "&", geography_query)
+  }
+  
+  cat("URL: ", final_url)
+  return(final_url)
+}
+```
+
 
 ## Processing the Response
 
@@ -31,7 +311,135 @@ format:
 
 ## Summary
 
+```{r}
+# Summary Function for Census Class
+summary.census <- function(data, 
+                           numeric_vars = NULL, 
+                           categorical_vars = NULL) {
+  
+  # Determine the variables that are actually in the dataset
+  valid_numeric_vars <- get_valid_numeric_vars()
+  valid_categorical_vars <- get_valid_categorical_vars()
+  
+  data_names <- toupper(names(data))
+  
+  numeric_vars_in_data <- intersect(data_names, valid_numeric_vars)
+  categorical_vars_in_data <- intersect(data_names, valid_categorical_vars)
+  
+  # Default: Summarize all numeric variables except PWGTP in dataset
+  if (is.null(numeric_vars)) {
+    numeric_vars <- numeric_vars_in_data[numeric_vars_in_data != "PWGTP"]
+  } else {
+    # otherwise filter only for those provided
+    numeric_vars <- intersect(toupper(numeric_vars), numeric_vars_in_data)
+  }
+  
+  # Default: Summarize all categorical variables in dataset
+  if (is.null(categorical_vars)) {
+    categorical_vars <- categorical_vars_in_data
+  } else {
+    # otherwise filter only for those provided
+    categorical_vars <- intersect(toupper(categorical_vars),
+                                  categorical_vars_in_data)
+  }
+  
+  weight <- data$PWGTP
+  summary_list <- list()
+
+  # Summarize numeric variables
+  for (var in numeric_vars) {
+    
+    # Check if the variable is a time variable
+    is_time_var <- var %in% c("JWAP", "JWDP")
+    
+    if (is_time_var) {
+      # Convert time to seconds
+      numeric_vector <- as.numeric(data[[var]])
+    } else if (is.numeric(data[[var]])) {
+      numeric_vector <- data[[var]]
+    } else {
+      stop("Unexpected non-numeric variable found for variable: ", var)
+    }
+    
+    # Calculate weighted mean and standard deviation
+    weighted_sample_mean <- sum(numeric_vector * weight, na.rm = TRUE) / 
+                              sum(weight, na.rm = TRUE)
+    sample_sd <- sqrt(sum((numeric_vector^2) * weight, na.rm = TRUE) / 
+                        sum(weight, na.rm = TRUE) - weighted_sample_mean^2)
+    
+    if (is_time_var) {
+      # Convert the results back to hms
+      weighted_sample_mean <- as_hms(weighted_sample_mean) 
+      sample_sd <- as_hms(sample_sd)
+    }
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      mean = weighted_sample_mean,
+      sd = sample_sd
+    )
+  }
+  
+  
+  # Summarize categorical variables
+  for (var in categorical_vars) {
+    
+    counts <-  data |> count(.data[[var]])
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      counts = counts
+    )
+  }
+
+  return(summary_list)
+}
+```
+
 ## Plotting
+
+```{r}
+# Plotting Function for Census Class 
+plot.census <- function(data, 
+                        numeric_var, 
+                        categorical_var,
+                        sample_size = 100000) {
+  
+  # Check User inputs
+  for (var in c(numeric_var, categorical_var, "PWGTP")) {
+    if (!var %in% names(data)) {
+      stop(paste("The variable", var, "is not present in the dataset. ",
+                 "Select from: ", paste(names(data), collapse = ", ")))
+    }
+  }
+  
+  # Remove NA records
+  data <- data |>
+    filter(!is.na(.data[[numeric_var]]) & 
+             !is.na(.data[[categorical_var]]))
+  
+  # If the dataset is large, take a random sample
+  if (nrow(data) > sample_size) {
+    message(nrow(data), " found in dataset. Sampled ", 
+            sample_size, " rows for plotting.")
+    set.seed(123)
+    data <- data |> sample_n(sample_size)
+  }
+  
+  # Plot with ggplot2
+  ggplot(data, 
+         aes(x = get(categorical_var), 
+             y = get(numeric_var), 
+             weight = PWGTP)) +
+    geom_boxplot() +
+    labs(
+      title = paste("Boxplot of", numeric_var, "by", categorical_var),
+      x = categorical_var, 
+      y = numeric_var 
+    ) +
+    theme_minimal()
+}
+```
 
 # Results
 
