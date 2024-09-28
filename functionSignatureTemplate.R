@@ -349,15 +349,15 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
     left_join(times_reference) # natural join on time code
     
   ## TESTING ONLY---copy JWAP/JWDP and time_Range columns to review values
-  #census_data_tbl[paste0(time_code, "_raw")] <- census_data_tbl[time_code]
+  census_data_tbl[paste0(time_code, "_raw")] <- census_data_tbl[time_code]
   #census_data_tbl[paste0("time_range", time_code)] <- census_data_tbl["time_range"]
   
   # assign the cleaned time values to the JWAP/JWDP column
   census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
   
-  # Drop the columns from the time reference table
+  # Drop the extra column from the time reference table
   census_data_tbl <- census_data_tbl |>
-    select(-one_of(paste0(time_code, "_clean"), "time_range"))
+    select(-one_of(paste0(time_code, "_clean")))
   
   return(census_data_tbl)
 }
@@ -392,25 +392,56 @@ get_time_refs <- function(time_code) {
   
   # set the number of minutes that will need to be added to be in middle of time
   # interval. JWAP: 5 min intervals, add 2 mins. JWDP: 10 min intervals, add 5 mins
-  add_mins <-
-    case_when(
-      time_code == "JWAP" ~ 2,
-      time_code == "JWDP" ~ 5,
-      .default = 0
-    )
+  # add_mins <-
+  #   case_when(
+  #     time_code == "JWAP" ~ 2,
+  #     time_code == "JWDP" ~ 5,
+  #     .default = 0
+  #   )
+  
+  # parse the time_range string to find the start and stop times
+  times_ref <-
+    times_ref |>
+    separate_wider_delim(time_range,
+                         delim = " to ",
+                         names = c("start_time", "end_time"),
+                         cols_remove = FALSE) 
+  
+  # convert new start/end columns to time
+  for (col in c("start_time", "end_time")) {
+    times_ref[[col]] <-
+      times_ref[[col]] |>
+      toupper() |>                              # change to upper case
+      str_replace_all("[.]", "") |>             # remove periods
+      parse_date_time('%I:%M %p', tz = "EST")   # convert to date-time
+  }
+
+  # calculate time to the midpoint between the start and end times
+  times_ref <-
+    times_ref |>
+    mutate(midpoint = difftime(end_time, start_time) / 2)
+  
+  # assign new clean time code variable as correct time
+  times_ref[paste0(time_code, "_clean")] <-
+    times_ref$start_time + times_ref$midpoint
   
   # add a numerical column to times_ref with correct time for each level
-  times_ref[paste0(time_code, "_clean")] <-
-    substr(times_ref$time_range, 1, 10) |>
-    toupper() |>                                 # change to upper-case
-    str_replace_all("[.]", "") |>                # remove periods
-    parse_date_time('%I:%M %p', 
-                    tz = "EST") + add_mins*60    # convert to date-time, add mins
-
-  # convert format from date-time to time (reference by [[]] not [])
+  # times_ref[paste0(time_code, "_clean")] <-
+  #   substr(times_ref$time_range, 1, 10) |>
+  #   toupper() |>                                 # change to upper-case
+  #   str_replace_all("[.]", "") |>                # remove periods
+  #   parse_date_time('%I:%M %p', 
+  #                   tz = "EST") + add_mins*60    # convert to date-time, add mins
+  # 
+  # # convert format from date-time to time (reference by [[]] not [])
   times_ref[paste0(time_code, "_clean")] <-
     hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
   
+  # drop extra columns, keeping only 2 (time code, time code clean)
+  times_ref <-
+    times_ref |>
+    select(-time_range, -start_time, -end_time, -midpoint)
+
   # return final clean ref table
   return(times_ref)
   
