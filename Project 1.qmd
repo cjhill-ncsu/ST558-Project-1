@@ -176,7 +176,7 @@ validate_geography_and_subset <- function(geography, subset) {
                            "East North Central", "West North Central", 
                            "South Atlantic", "East South Central", 
                            "West South Central", "Mountain", "Pacific")),
-      STATE = c(1:56)
+      STATE = c(1:56)[-c(3,7)]
     )
     
     # Validate subset based on the provided geography

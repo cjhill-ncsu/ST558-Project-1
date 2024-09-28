@@ -17,7 +17,7 @@ get_data_tibble_from_census_api <- function(year = 2022,
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
                                      geography = "State", 
-                                     subset = 8) {
+                                     subset = "CO") {
   
   # validate the user inputs
   validate_year(year)
@@ -76,8 +76,8 @@ validate_categorical_vars <- function(categorical_vars) {
 validate_geography_and_subset <- function(geography, subset) {
   
   # Convert to uppercase for case-insensitive comparison
-  valid_geography_levels <- toupper(get_valid_geography_levels())
-  geography <- toupper(geography)
+  valid_geography_levels <- tolower(get_valid_geography_levels())
+  geography <- tolower(geography)
   
   # Validate the geography
   if (!(geography %in% valid_geography_levels)) {
@@ -85,27 +85,35 @@ validate_geography_and_subset <- function(geography, subset) {
          paste(valid_geography_levels, collapse = ", "))
   }
   
-  # If geography is "ALL", subsetting is not allowed
-  if (geography == "ALL" && !is.null(subset)) {
+  # If geography is "all", subsetting is not allowed
+  if (geography == "all" && !is.null(subset)) {
     stop("Subsetting is not allowed when geography is 'All'.")
   }
   
-  # Validate the subset matches geography
-  if (!is.null(subset)) {
-    valid_options <- list(
-      REGION = toupper(c("Northeast", "Midwest", "South", "West")),
-      DIVISION = toupper(c("New England", "Middle Atlantic", 
-                           "East North Central", "West North Central", 
-                           "South Atlantic", "East South Central", 
-                           "West South Central", "Mountain", "Pacific")),
-      STATE = c(1:56)
-    )
-    
-    # Validate subset based on the provided geography
-    if (!(toupper(subset) %in% valid_options[[geography]])) {
-      stop(paste("Invalid subset for", geography, ". Must be one of:", 
-                 paste(valid_options[[geography]], collapse = ", ")))
+  # Valid options for regions and divisions
+  valid_region_division_options <- list(
+    region = tolower(c("Northeast", "Midwest", "South", "West")),
+    division = tolower(c("New England", "Middle Atlantic", 
+                         "East North Central", "West North Central", 
+                         "South Atlantic", "East South Central", 
+                         "West South Central", "Mountain", "Pacific"))
+  )
+  
+  # Consolidated check for region and division
+  if (geography %in% c("region", "division")) {
+    if (!(tolower(subset) %in% valid_region_division_options[[geography]])) {
+      stop("Invalid ", geography, ". Must be one of: ", 
+           paste(valid_region_division_options[[geography]], collapse = ", "))
     }
+  }
+  
+  print(geography)
+  print(subset)
+  
+  # Handle State geography
+  if (geography == "state") {
+    print(subset)
+    state_code <-  get_state_code(subset)
   }
 }
 
@@ -144,7 +152,93 @@ get_valid_geography_levels <- function() {
   c("All", "Region", "Division", "State")
 }
 
+# Function to get state code from state name or abbreviation
+get_state_code <- function(state_input) {
+
+  state_input <- tolower(state_input)
+  
+  # Provided state codes
+  state_codes <- c(
+    "01" = "Alabama/AL",
+    "02" = "Alaska/AK",
+    "04" = "Arizona/AZ",
+    "05" = "Arkansas/AR",
+    "06" = "California/CA",
+    "08" = "Colorado/CO",
+    "09" = "Connecticut/CT",
+    "10" = "Delaware/DE",
+    "11" = "District of Columbia/DC",
+    "12" = "Florida/FL",
+    "13" = "Georgia/GA",
+    "15" = "Hawaii/HI",
+    "16" = "Idaho/ID",
+    "17" = "Illinois/IL",
+    "18" = "Indiana/IN",
+    "19" = "Iowa/IA",
+    "20" = "Kansas/KS",
+    "21" = "Kentucky/KY",
+    "22" = "Louisiana/LA",
+    "23" = "Maine/ME",
+    "24" = "Maryland/MD",
+    "25" = "Massachusetts/MA",
+    "26" = "Michigan/MI",
+    "27" = "Minnesota/MN",
+    "28" = "Mississippi/MS",
+    "29" = "Missouri/MO",
+    "30" = "Montana/MT",
+    "31" = "Nebraska/NE",
+    "32" = "Nevada/NV",
+    "33" = "New Hampshire/NH",
+    "34" = "New Jersey/NJ",
+    "35" = "New Mexico/NM",
+    "36" = "New York/NY",
+    "37" = "North Carolina/NC",
+    "38" = "North Dakota/ND",
+    "39" = "Ohio/OH",
+    "40" = "Oklahoma/OK",
+    "41" = "Oregon/OR",
+    "42" = "Pennsylvania/PA",
+    "44" = "Rhode Island/RI",
+    "45" = "South Carolina/SC",
+    "46" = "South Dakota/SD",
+    "47" = "Tennessee/TN",
+    "48" = "Texas/TX",
+    "49" = "Utah/UT",
+    "50" = "Vermont/VT",
+    "51" = "Virginia/VA",
+    "53" = "Washington/WA",
+    "54" = "West Virginia/WV",
+    "55" = "Wisconsin/WI",
+    "56" = "Wyoming/WY",
+    "72" = "Puerto Rico/PR"
+  )
+  
+  # Create a tibble to split state name and abbreviation
+  state_codes_tibble <- tibble(
+    code = names(state_codes),
+    state_info = state_codes
+  ) |> 
+    separate_wider_delim(state_info, delim = "/", names = c("state", "abbreviation")) |>
+    mutate(state = tolower(state), abbreviation = tolower(abbreviation))
+  
+  # Filter for state name or abbreviation match
+  result <- state_codes_tibble |>
+    filter(state == state_input | abbreviation == state_input) |>
+    pull(code)
+  
+  # Return the state code or stop if not found
+  if (length(result) == 0) {
+    stop("Invalid state name or abbreviation")
+  }
+  
+  return(result)
+}
+
 get_subset_code <- function(geography, subset) {
+  
+  if (is.null(subset)) {
+    return("*")
+  }
   
   # Mappings for regions and divisions
   region_codes <- list(
@@ -166,14 +260,13 @@ get_subset_code <- function(geography, subset) {
     "Pacific" = "9"
   )
   
-  if (is.null(subset)) {
-    return("*")
-  }
+  geography <- tolower(geography)
   
+  # Switch based on geography type
   switch(geography,
-         "Region" = region_codes[[subset]],
-         "Division" = division_codes[[subset]],
-         "State" = subset,
+         "region" = region_codes[[subset]],
+         "division" = division_codes[[subset]],
+         "state" = get_state_code(subset),  
          stop("Invalid geography type"))
 }
 
@@ -183,7 +276,7 @@ build_query_url <- function(year = 2022,
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
                             geography = "State", 
-                            subset = 8) {
+                            subset = "CO") {
 
   dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
   
@@ -235,7 +328,7 @@ year <- 2015
 num_vars <- c("AGEP", "PWGTP", "GRPIP", "JWAP") 
 cat_vars <- c("SEX", "HHL")
 geo <- "State"
-subset <- 37
+subset <- "CO"
 
 urlTest <- build_query_url(year, 
                         num_vars, 
