@@ -307,7 +307,7 @@ process_census_data <- function(census_data_tbl) {
   #census_data_tbl["JWAP_char"] <- census_data_tbl["JWAP"]
   #census_data_tbl["JWDP_char"] <- census_data_tbl["JWDP"]
   
-  # retrieve valid numeric vars as factor, keeping only the ones that exist in 
+  # retrieve valid numeric vars, keeping only the ones that exist in 
   # the input raw data (note JWAP and JWDP will still need to be changed to times)
   num_vars <- 
     get_valid_numeric_vars() |>
@@ -320,7 +320,7 @@ process_census_data <- function(census_data_tbl) {
   
   # collect the time variables to convert
   time_vars <- 
-    as.factor(c("JWAP", "JWDP")) |>
+    c("JWAP", "JWDP") |>
     intersect(names(census_data_tbl))
   
   # call helper function to convert time codes to numeric time (won't run if 
@@ -345,13 +345,10 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   times_reference <- get_time_refs(time_code)
   
   # join new JWAP/JWDP to table with proper times
-  census_data_tbl <- census_data_tbl |>
+  census_data_tbl <- 
+    census_data_tbl |>
     left_join(times_reference) # natural join on time code
     
-  ## TESTING ONLY---copy JWAP/JWDP and time_Range columns to review values
-  census_data_tbl[paste0(time_code, "_raw")] <- census_data_tbl[time_code]
-  #census_data_tbl[paste0("time_range", time_code)] <- census_data_tbl["time_range"]
-  
   # assign the cleaned time values to the JWAP/JWDP column
   census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
   
@@ -390,15 +387,6 @@ get_time_refs <- function(time_code) {
   # to missing (it is a string that can't be converted to time, starts with "N/A")
   times_ref$time_range[times_ref[time_code] == 0] <- NA
   
-  # set the number of minutes that will need to be added to be in middle of time
-  # interval. JWAP: 5 min intervals, add 2 mins. JWDP: 10 min intervals, add 5 mins
-  # add_mins <-
-  #   case_when(
-  #     time_code == "JWAP" ~ 2,
-  #     time_code == "JWDP" ~ 5,
-  #     .default = 0
-  #   )
-  
   # parse the time_range string to find the start and stop times
   times_ref <-
     times_ref |>
@@ -424,16 +412,8 @@ get_time_refs <- function(time_code) {
   # assign new clean time code variable as correct time
   times_ref[paste0(time_code, "_clean")] <-
     times_ref$start_time + times_ref$midpoint
-  
-  # add a numerical column to times_ref with correct time for each level
-  # times_ref[paste0(time_code, "_clean")] <-
-  #   substr(times_ref$time_range, 1, 10) |>
-  #   toupper() |>                                 # change to upper-case
-  #   str_replace_all("[.]", "") |>                # remove periods
-  #   parse_date_time('%I:%M %p', 
-  #                   tz = "EST") + add_mins*60    # convert to date-time, add mins
-  # 
-  # # convert format from date-time to time (reference by [[]] not [])
+
+  # convert format from date-time to time (reference by [[]] not [])
   times_ref[paste0(time_code, "_clean")] <-
     hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
   
