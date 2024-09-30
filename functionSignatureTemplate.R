@@ -385,23 +385,27 @@ json_to_raw_tbl_helper <- function(census_raw) {
 # KATY
 process_census_data <- function(census_data_tbl) {
 
-  # retrieve valid categorical variables (exclude JWAP/JWDP; if converted from
-  # factor directly to numeric, this will make the values incorrect)
+  # retrieve valid categorical variables
   cat_vars <- 
-    get_valid_categorical_vars() |>
-    intersect(names(census_data_tbl)) |>
-    setdiff(c("JWAP", "JWDP"))
+    get_valid_categorical_vars() |>      # get all valid categorical variables
+    c("DIVISION", "REGION", "ST") |>     # append regional categories
+    intersect(names(census_data_tbl))    # keep only values in the data set
   
-  # convert categorical variables to factors
+  # convert categorical variables to actual descriptive values, and as factors
   for (var in cat_vars){
-    census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+    census_data_tbl[var] <- convert_cat_code_to_description(census_data_tbl[var])
   } 
+  
+  # convert categorical variables to factors ##DELETE AFTER ABOVE HELPER WORKING
+  # for (var in cat_vars){
+  #   census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+  # } 
     
   ## TESTING ONLY--copy the JWAP/JWDP columns
   #census_data_tbl["JWAP_char"] <- census_data_tbl["JWAP"]
   #census_data_tbl["JWDP_char"] <- census_data_tbl["JWDP"]
   
-  # retrieve valid numeric vars as factor, keeping only the ones that exist in 
+  # retrieve valid numeric vars, keeping only the ones that exist in 
   # the input raw data (note JWAP and JWDP will still need to be changed to times)
   num_vars <- 
     get_valid_numeric_vars() |>
@@ -414,7 +418,7 @@ process_census_data <- function(census_data_tbl) {
   
   # collect the time variables to convert
   time_vars <- 
-    as.factor(c("JWAP", "JWDP")) |>
+    c("JWAP", "JWDP") |>
     intersect(names(census_data_tbl))
   
   # call helper function to convert time codes to numeric time (won't run if 
@@ -439,13 +443,10 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   times_reference <- get_time_refs(time_code)
   
   # join new JWAP/JWDP to table with proper times
-  census_data_tbl <- census_data_tbl |>
+  census_data_tbl <- 
+    census_data_tbl |>
     left_join(times_reference) # natural join on time code
     
-  ## TESTING ONLY---copy JWAP/JWDP and time_Range columns to review values
-  census_data_tbl[paste0(time_code, "_raw")] <- census_data_tbl[time_code]
-  #census_data_tbl[paste0("time_range", time_code)] <- census_data_tbl["time_range"]
-  
   # assign the cleaned time values to the JWAP/JWDP column
   census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
   
@@ -484,15 +485,6 @@ get_time_refs <- function(time_code) {
   # to missing (it is a string that can't be converted to time, starts with "N/A")
   times_ref$time_range[times_ref[time_code] == 0] <- NA
   
-  # set the number of minutes that will need to be added to be in middle of time
-  # interval. JWAP: 5 min intervals, add 2 mins. JWDP: 10 min intervals, add 5 mins
-  # add_mins <-
-  #   case_when(
-  #     time_code == "JWAP" ~ 2,
-  #     time_code == "JWDP" ~ 5,
-  #     .default = 0
-  #   )
-  
   # parse the time_range string to find the start and stop times
   times_ref <-
     times_ref |>
@@ -518,16 +510,8 @@ get_time_refs <- function(time_code) {
   # assign new clean time code variable as correct time
   times_ref[paste0(time_code, "_clean")] <-
     times_ref$start_time + times_ref$midpoint
-  
-  # add a numerical column to times_ref with correct time for each level
-  # times_ref[paste0(time_code, "_clean")] <-
-  #   substr(times_ref$time_range, 1, 10) |>
-  #   toupper() |>                                 # change to upper-case
-  #   str_replace_all("[.]", "") |>                # remove periods
-  #   parse_date_time('%I:%M %p', 
-  #                   tz = "EST") + add_mins*60    # convert to date-time, add mins
-  # 
-  # # convert format from date-time to time (reference by [[]] not [])
+
+  # convert format from date-time to time (reference by [[]] not [])
   times_ref[paste0(time_code, "_clean")] <-
     hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
   
@@ -540,6 +524,56 @@ get_time_refs <- function(time_code) {
   return(times_ref)
   
 }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# take categorical raw value and convert to descriptive value, and make a factor
+convert_cat_code_to_description <- function(data_column) {
+
+  # get the variable name that has to be looked up
+  var <- colnames(data_column)
+    
+  # get time references from API`
+  cat_reference <- get_cat_refs(var)
+  
+  # join new lookup table to the data column with proper values
+  data_column <- 
+    data_column |>
+    left_join(cat_reference) # natural join on coded value
+  
+  # return new data column with descriptive values, as factor
+  return(as.factor(data_column[[2]]))
+  
+  # # assign the descriptive values to the original column, as factor
+  # data_column[[1]] <- as.factor(data_column[[2]])
+  # 
+  # # # Drop the extra column from the time reference table
+  # # census_data_tbl <- census_data_tbl |>
+  # #   select(-one_of(paste0(time_code, "_clean")))
+  # 
+  # # return just the original column, which now has descriptive values 
+  # return(data_column[[1]])
+  
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+get_cat_refs <- function(cat_code) {
+  
+  # construct url from the time_code (JWDP or JWAP)
+  cat_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
+                     cat_code, ".json")
+  
+  # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
+  # then transpose the data to get key-value pair in columns
+  cat_ref <- 
+    fromJSON(cat_url)$values |>
+    bind_rows() |>
+    pivot_longer(cols = everything(), 
+                 names_to = cat_code, 
+                 values_to = "description")
+
+  return(cat_ref)
+  
+  }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Summary Function for Census Class

@@ -58,6 +58,10 @@ get_data_tibble_from_census_api <- function(year = 2022,
 
 ### query_census_multiple_years
 
+- In addition to the same arguments as the single year version, this function also takes in a range of years
+- A loop calls the single year function with each iteration, adding the results as new elements to a list. Each tibble also has a new column designating the year. 
+- After the loop, bind rows is used to combine all results into one tibble
+
 ```{r}
 # Function for Querying Multiple Years
 query_census_multiple_years <- function(years, 
@@ -402,6 +406,219 @@ build_query_url <- function(year = 2022,
 
 
 ## Processing the Response
+
+### query_census_with_url
+
+- I followed the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
+- I wrote a series of helper functions to keep better track of what each step within this function was doing, which helped me stay focused on small tasks rather than get overwhelmed by everything that had to be done to get the final clean data
+- The data frame that came out of the JSON to data frame helper had all the data in columns, but everything was character, so I wrote a final helper function, process_census_data
+
+```{r}
+query_census_with_url <- function(url) {
+  
+  # retrieve data in list form from API
+  census_raw <- httr::GET(url)
+  
+  # check that data was returned
+  validate_url_response(census_raw)
+  
+  # call helper function to turn API raw data into a raw tibble
+  census_raw_tbl <- json_to_raw_tbl_helper(census_raw)
+
+  # call helper function to clean tibble
+  census_clean_tbl <- process_census_data(census_raw_tbl)
+  
+  # return final clean tibble
+  return(census_clean_tbl)
+  
+}
+
+```
+
+### json_to_raw_tbl_helper
+
+- This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character
+- The data frame that was created from JSON had the column names in the first row, so a step was included to grab the first row as the column names, and take the rest of the rows as the observations
+
+```{r}
+json_to_raw_tbl_helper <- function(census_raw) {
+  
+  # convert JSON string raw data to data frame (first row are column names)
+  parsed_census <- as.data.frame(fromJSON(rawToChar(census_raw$content)))
+  
+  # convert to a tibble, use 1st row from raw df as column names
+  census_tbl <- as_tibble(parsed_census[-1,])
+  colnames(census_tbl) <- parsed_census[1,]
+  
+  # return final tibble
+  return(census_tbl)
+}
+
+```
+
+### process_census_data
+
+- This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.
+- It was straight-forward to coerce categorical fields into factors, and the regular numeric fields into numeric.
+- It took a lot of debugging and research to get the time fields right. 
+    + At first, I was converting them to factors since JWAP/JWDP were both also initially considered both numerical and categorical variables. 
+    + However, when Chris was working on the plots, he noticed a lot of values were close to midnight. I thought that was strange, so I pulled the data and found a lot of values that were actually 0 were getting changed to 1 somewhere along the way. 
+    + I looked to see if there was something wrong with the join to the time reference table (which provided a time for each time code), and it looked right. 
+    + However, I found that when I coerced them directly from factors to numeric, all of the values changed. So that's how I learned that when factors are coerced directly to numeric, what you are changing are actually the cardinal levels and not the level description. So "0" was changing to 1 because it was the lowest (first) level. This of course meant that *all* of the values were now wrong. 
+    + Since Dr. Post confirmed that JWAP/JWDP didn't need to be categorical values, I removed the step that was converting them to factors, and the values now converted (from character) as expected.
+
+```{r}
+process_census_data <- function(census_data_tbl) {
+
+  # retrieve valid categorical variables (exclude JWAP/JWDP; if converted from
+  # factor directly to numeric, this will make the values incorrect)
+  cat_vars <- 
+    get_valid_categorical_vars() |>
+    intersect(names(census_data_tbl)) |>
+    setdiff(c("JWAP", "JWDP"))
+  
+  # convert categorical variables to factors
+  for (var in cat_vars){
+    census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+  } 
+
+  # retrieve valid numeric vars, keeping only the ones that exist in 
+  # the input raw data (note JWAP and JWDP will still need to be changed to times)
+  num_vars <- 
+    get_valid_numeric_vars() |>
+    intersect(names(census_data_tbl))
+  
+  # turn vars into numeric values in the tibble 
+  for (var in num_vars){
+    census_data_tbl[[var]] <- as.numeric(census_data_tbl[[var]])
+  } 
+  
+  # collect the time variables to convert
+  time_vars <- 
+    c("JWAP", "JWDP") |>
+    intersect(names(census_data_tbl))
+  
+  # call helper function to convert time codes to numeric time (won't run if 
+  # time_vars is empty)
+  for (time_code in time_vars) {
+    census_data_tbl <- convert_num_code_to_time(census_data_tbl, time_code)
+  }
+  
+  # Assign class for custom methods
+  class(census_data_tbl) <- c("census", class(census_data_tbl))
+  
+  # return clean tibble
+  return(census_data_tbl)
+  
+}
+
+```
+
+### convert_num_code_to_time
+
+- This is another helper function to take the numerical time codes and change them to a meaningful time
+- It starts with another helper function to get a reference tibble that provides the key-value pairs for each time code and time
+- It takes the census data and left joins to the time reference table, and replaces the JWAP raw value with the actual time. I couldn't figure out how to use a variable as one of the keys in the "by" argument, so unfortunately I had to do it as a natural join. It's not ideal, but it does work. It meant the names of the primary and foreign keys in each table had to match (i.e. JWAP or JWDP), and that no other columns between the two tables could share the same name.
+- The final step was to replace the values in JWAP/JWDP with the correct time from the 2nd table, and drop the now duplicate field that had been pulled in (named JWAP_clean or JWDP_clean)
+
+```{r}
+convert_num_code_to_time <- function(census_data_tbl, time_code) {
+  
+  # get time references from API`
+  times_reference <- get_time_refs(time_code)
+  
+  # join new JWAP/JWDP to table with proper times
+  census_data_tbl <- 
+    census_data_tbl |>
+    left_join(times_reference) # natural join on time code
+    
+  # assign the cleaned time values to the JWAP/JWDP column
+  census_data_tbl[time_code] <- census_data_tbl[paste0(time_code, "_clean")]
+  
+  # Drop the extra column from the time reference table
+  census_data_tbl <- census_data_tbl |>
+    select(-one_of(paste0(time_code, "_clean")))
+  
+  return(census_data_tbl)
+}
+
+```
+
+### get_time_refs
+
+- This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble
+- This is probably the function I spent the most time getting to work properly.
+- The url for the API endpoint is actually a .json, so I think that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list. 
+- I used bind_rows to get those elements into a single tibble, so now each named element was its own column. I transposed the data table with pivot_longer to get just 2 columns, one for the time code and the other for the time range
+- Getting from the text time ranges, e.g. "8:50 a.m. to 8:54 a.m." to a nice, clean time (08:52:00) took me awhile and a few tries. On my first pass, I thought that both JWAP and JWDP had consistent time ranges, so I set up the code to just take a substring for the first time in the interval, convert it to time, and add 2 minutes to JWAP values and 5 minutes to JWDP values. 
+- While debugging the issue I mentioned before about the time codes changing when coercing from factor to numeric, I looked more closely at the reference tables and realized that JWDP had varying intervals. So I had to change the logic to take both the starting and ending times to compute the midpoint of the interval
+- Since I had to repeat the same actions on two different strings to get them both in correct time format, I put in a loop. After that, getting the final time and removing the extraneous columns was pretty straightforward.
+
+```{r}
+get_time_refs <- function(time_code) {
+  
+  # construct url from the time_code (JWDP or JWAP)
+  time_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
+                    time_code, ".json")
+  
+  # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
+  # then transpose the data to get key-value pair in columns
+  times_ref <- 
+    fromJSON(time_url)$values |>
+    bind_rows() |>
+    pivot_longer(cols = everything(), 
+                 names_to = time_code, 
+                 values_to = "time_range")
+  
+  # convert 1st column (JWAP/JWDP) to numeric 
+  times_ref[[time_code]] <- as.numeric(times_ref[[time_code]])
+  
+  # filter on the row(s) where JWAP/JWDP == 0, change the value for time_range
+  # to missing (it is a string that can't be converted to time, starts with "N/A")
+  times_ref$time_range[times_ref[time_code] == 0] <- NA
+  
+  # parse the time_range string to find the start and stop times
+  times_ref <-
+    times_ref |>
+    separate_wider_delim(time_range,
+                         delim = " to ",
+                         names = c("start_time", "end_time"),
+                         cols_remove = FALSE) 
+  
+  # convert new start/end columns to time
+  for (col in c("start_time", "end_time")) {
+    times_ref[[col]] <-
+      times_ref[[col]] |>
+      toupper() |>                              # change to upper case
+      str_replace_all("[.]", "") |>             # remove periods
+      parse_date_time('%I:%M %p', tz = "EST")   # convert to date-time
+  }
+
+  # calculate time to the midpoint between the start and end times
+  times_ref <-
+    times_ref |>
+    mutate(midpoint = difftime(end_time, start_time) / 2)
+  
+  # assign new clean time code variable as correct time
+  times_ref[paste0(time_code, "_clean")] <-
+    times_ref$start_time + times_ref$midpoint
+
+  # convert format from date-time to time (reference by [[]] not [])
+  times_ref[paste0(time_code, "_clean")] <-
+    hms::as_hms(times_ref[[paste0(time_code, "_clean")]])
+  
+  # drop extra columns, keeping only 2 (time code, time code clean)
+  times_ref <-
+    times_ref |>
+    select(-time_range, -start_time, -end_time, -midpoint)
+
+  # return final clean ref table
+  return(times_ref)
+  
+}
+
+```
+
 
 # Generic Class Functions
 
