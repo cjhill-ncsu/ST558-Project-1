@@ -213,15 +213,16 @@ get_state_code <- function(state_input) {
     "72" = "Puerto Rico/PR"
   )
   
-  # Create a tibble to split state name and abbreviation
+  # Tibble with state name and abbreviation
   state_codes_tibble <- tibble(
     code = names(state_codes),
     state_info = state_codes
   ) |> 
-    separate_wider_delim(state_info, delim = "/", names = c("state", "abbreviation")) |>
+    separate_wider_delim(state_info, delim = "/", 
+                         names = c("state", "abbreviation")) |>
     mutate(state = tolower(state), abbreviation = tolower(abbreviation))
   
-  # Filter for state name or abbreviation match
+  # Filter down to match input
   result <- state_codes_tibble |>
     filter(state == state_input | abbreviation == state_input) |>
     pull(code)
