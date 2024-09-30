@@ -291,17 +291,21 @@ json_to_raw_tbl_helper <- function(census_raw) {
 # KATY
 process_census_data <- function(census_data_tbl) {
 
-  # retrieve valid categorical variables (exclude JWAP/JWDP; if converted from
-  # factor directly to numeric, this will make the values incorrect)
+  # retrieve valid categorical variables
   cat_vars <- 
-    get_valid_categorical_vars() |>
-    intersect(names(census_data_tbl)) |>
-    setdiff(c("JWAP", "JWDP"))
+    get_valid_categorical_vars() |>      # get all valid categorical variables
+    c("DIVISION", "REGION", "ST") |>     # append regional categories
+    intersect(names(census_data_tbl))    # keep only values in the data set
   
-  # convert categorical variables to factors
+  # convert categorical variables to actual descriptive values, and as factors
   for (var in cat_vars){
-    census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+    census_data_tbl[var] <- convert_cat_code_to_description(census_data_tbl[var])
   } 
+  
+  # convert categorical variables to factors ##DELETE AFTER ABOVE HELPER WORKING
+  # for (var in cat_vars){
+  #   census_data_tbl[[var]] <- as.factor(census_data_tbl[[var]])
+  # } 
     
   ## TESTING ONLY--copy the JWAP/JWDP columns
   #census_data_tbl["JWAP_char"] <- census_data_tbl["JWAP"]
@@ -426,6 +430,56 @@ get_time_refs <- function(time_code) {
   return(times_ref)
   
 }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# take categorical raw value and convert to descriptive value, and make a factor
+convert_cat_code_to_description <- function(data_column) {
+
+  # get the variable name that has to be looked up
+  var <- colnames(data_column)
+    
+  # get time references from API`
+  cat_reference <- get_cat_refs(var)
+  
+  # join new lookup table to the data column with proper values
+  data_column <- 
+    data_column |>
+    left_join(cat_reference) # natural join on coded value
+  
+  # return new data column with descriptive values, as factor
+  return(as.factor(data_column[[2]]))
+  
+  # # assign the descriptive values to the original column, as factor
+  # data_column[[1]] <- as.factor(data_column[[2]])
+  # 
+  # # # Drop the extra column from the time reference table
+  # # census_data_tbl <- census_data_tbl |>
+  # #   select(-one_of(paste0(time_code, "_clean")))
+  # 
+  # # return just the original column, which now has descriptive values 
+  # return(data_column[[1]])
+  
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+get_cat_refs <- function(cat_code) {
+  
+  # construct url from the time_code (JWDP or JWAP)
+  cat_url <- paste0("https://api.census.gov/data/2022/acs/acs1/pums/variables/",
+                     cat_code, ".json")
+  
+  # retrieve data in list form from API, then bind rows to put in 1 by x tibble,
+  # then transpose the data to get key-value pair in columns
+  cat_ref <- 
+    fromJSON(cat_url)$values |>
+    bind_rows() |>
+    pivot_longer(cols = everything(), 
+                 names_to = cat_code, 
+                 values_to = "description")
+
+  return(cat_ref)
+  
+  }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Summary Function for Census Class
