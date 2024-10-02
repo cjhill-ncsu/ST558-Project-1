@@ -30,7 +30,17 @@ library(hms)
 
 ## Primary User Interface Methods
 
+The following two functions are designed to take user input and return a properly formatted and easy to use data table in the form of a **tibble**. They will validate each input from the user and pass them into functions whose purpose is the work of creating, processing, and handling our api request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures. 
+
+We will also introduce two further interface methods that allow for additional features such as summaries and plots. These [Generic Class Functions](#generic-class-functions) will take the tibble retrieved from the census API do display meaningful summaries and plots depending on the user's demands.
+
 ### get_data_tibble_from_census_api
+
+- The first step is to define the inputs we expect from the user. All of our inputs have default settings. As such, this function can be called without arguments and will return census data from the year 2022 from the state of Colorado. In particular, it will return the numeric variables AGEP and PWGTP. As well as the categorical variable SEX.
+
+- No matter the case, we always pass these inputs to various [validation functions](#input-validation). We will discuss each of these in turn below. 
+
+- With valid input from the user, we then set a chain of events to first build the URL from those inputs, then send that request for information from the census. With the data in it's raw form from the API, we can then work to format it for ease of use.
 
 ```{r}
 # User interface to take inputs and return fully processed data tibble
@@ -38,7 +48,7 @@ get_data_tibble_from_census_api <- function(year = 2022,
                                      numeric_vars = c("AGEP", "PWGTP"), 
                                      categorical_vars = c("SEX"), 
                                      geography = "State", 
-                                     subset = 8) {
+                                     subset = "CO") {
   
   # validate the user inputs
   validate_year(year)
@@ -68,7 +78,7 @@ query_census_multiple_years <- function(years,
                                  numeric_vars = c("AGEP", "PWGTP"), 
                                  categorical_vars = c("SEX"), 
                                  geography = "State", 
-                                 subset = 8) {
+                                 subset = "CO") {
   
   # create empty list to store data frames
   multi_year_list <- list()
@@ -105,6 +115,10 @@ query_census_multiple_years <- function(years,
 
 ## Input Validation
 
+We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.
+
+Ensure that the year is between 2010 and 2022
+
 ```{r}
 # Year must be between 2010 and 2022.
 validate_year <- function(year){
@@ -114,7 +128,7 @@ validate_year <- function(year){
 }
 ```
 
-
+Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) below. We will check against these to ensure each variable in the input is valid.
 
 ```{r}
 # PWGTP and at least one other valid numeric variable must be selected
@@ -132,7 +146,7 @@ validate_numeric_vars <- function(numeric_vars) {
 }
 ```
 
-
+In a similar fashion, we handle categorical variable inputs. We expect at least one categorical variable from the user. It should be noted, that we are not so much interested in the case of the variables. The URL does have a standard for case, but it does not cause an error in testing. Thus, we allow it for a better user experience.
 
 ```{r}
 # At least one valid categorical variable must be selected
@@ -151,7 +165,11 @@ validate_categorical_vars <- function(categorical_vars) {
 }
 ```
 
+### validate_geography_and_subset
 
+Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given that geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography. 
+
+Selecting the State geography in particular is worth mentioning. We developed a [helper for states](#get_state_code) because we wanted to allow the user to provide a state name or abbreviation instead of a state code. In this way it is handled slightly different from the other geographies.
 
 ```{r}
 # Geography & Subset Together
@@ -198,6 +216,8 @@ validate_geography_and_subset <- function(geography, subset) {
 
 ## Utilities
 
+We define a few "getter" functions that allow us to fetch the valid variables whenever required. 
+
 ```{r}
 get_valid_numeric_vars <- function() {
   c("AGEP", "PWGTP", "GASP", "GRPIP", "JWAP", "JWDP", "JWMNP")
@@ -212,7 +232,51 @@ get_valid_geography_levels <- function() {
 }
 ```
 
+### get_subset_code
 
+In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset's numeric code to be used in the URL itself. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
+
+```{r}
+get_subset_code <- function(geography, subset) {
+  
+  if (is.null(subset)) {
+    return("*")
+  }
+  
+  # Mappings for regions and divisions
+  region_codes <- list(
+    "Northeast" = "1", 
+    "Midwest" = "2", 
+    "South" = "3", 
+    "West" = "4"
+  )
+  
+  division_codes <- list(
+    "New England" = "1", 
+    "Middle Atlantic" = "2", 
+    "East North Central" = "3", 
+    "West North Central" = "4", 
+    "South Atlantic" = "5", 
+    "East South Central" = "6", 
+    "West South Central" = "7", 
+    "Mountain" = "8", 
+    "Pacific" = "9"
+  )
+  
+  geography <- tolower(geography)
+  
+  # Switch based on geography type
+  switch(geography,
+         "region" = region_codes[[subset]],
+         "division" = division_codes[[subset]],
+         "state" = get_state_code(subset),  
+         stop("Invalid geography type"))
+}
+```
+
+### get_state_code
+
+As mentioned, we have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a *stop()* within it that will allow us the validate if the the state input returns a valid code. 
 
 ```{r}
 # Function to get state code from state name or abbreviation
@@ -298,45 +362,15 @@ get_state_code <- function(state_input) {
   
   return(result)
 }
-
-get_subset_code <- function(geography, subset) {
-  
-  if (is.null(subset)) {
-    return("*")
-  }
-  
-  # Mappings for regions and divisions
-  region_codes <- list(
-    "Northeast" = "1", 
-    "Midwest" = "2", 
-    "South" = "3", 
-    "West" = "4"
-  )
-  
-  division_codes <- list(
-    "New England" = "1", 
-    "Middle Atlantic" = "2", 
-    "East North Central" = "3", 
-    "West North Central" = "4", 
-    "South Atlantic" = "5", 
-    "East South Central" = "6", 
-    "West South Central" = "7", 
-    "Mountain" = "8", 
-    "Pacific" = "9"
-  )
-  
-  geography <- tolower(geography)
-  
-  # Switch based on geography type
-  switch(geography,
-         "region" = region_codes[[subset]],
-         "division" = division_codes[[subset]],
-         "state" = get_state_code(subset),  
-         stop("Invalid geography type"))
-}
 ```
 
+### validate_url_response
 
+It was discovered that some URL's do not return data. This caused errors down the line when the functions used to process the data were expecting their own inputs. To handle this issue more gracefully, we built a check on the response from the API. 
+
+- We first want to check that the status was a success. If we are dealing with more than just empty data, we can actually display the error message to further diagnose the issue. 
+
+- If the request was a success, we also check that the API returned anything at all for us to process. If nothing came back, there is no need to proceed.
 
 ```{r}
 # Check we got something from the API using GET(URL)
@@ -360,8 +394,15 @@ validate_url_response <- function(response) {
 }
 ```
 
-
 ## Building the URL
+
+Here we reach our first undertaking after validating inputs. We need to construct a URL from the user input. 
+
+- We ran into some issues with fetching data from various years. It was discovered that by altering our base url dependent upon the year, we were able to query recent years and older records as well. This is seen in the *dataset_type* in the code below. 
+
+- We then piece together all the desired variables to append to the base URL. 
+
+- Geography and subsets are at the end. Here we very much leverage the helper/utility functions that we defined above
 
 ```{r}
 # Build a valid URL for the Census API
@@ -403,7 +444,6 @@ build_query_url <- function(year = 2022,
   return(final_url)
 }
 ```
-
 
 ## Processing the Response
 
@@ -622,7 +662,17 @@ get_time_refs <- function(time_code) {
 
 # Generic Class Functions
 
+Created generic functions to automatically summarize and plot certain returned data. These are the two additional interfaces that we built for the user. THe expect a tibble from a successful API call. 
+
 ## Summary
+
+By default, it will summarize all numeric variables (other than PWGTP) and all categorical variables in the tibble. The user is able to specify the variables they’d like in particular as additional arguments.
+
+- Numeric variables will have their weighted sample means and standard deviations calculated.
+
+- Categorical variables will have their level counts displayed.
+
+- Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into *seconds from midnight* to perform calculation on them. We then convert back to HMS to be in a more friendly format.
 
 ```{r}
 # Summary Function for Census Class
@@ -710,6 +760,12 @@ summary.census <- function(data,
 ```
 
 ## Plotting
+
+Created a generic plot() function for a census class tibble. Requires the user to specify one categorical variable and one numeric variable for plotting purposes.
+
+- Here we check the inputs are in the data and filter out and missing entries bfore plotting.
+
+- The biggest point of note is the use of sampling. Some of the data sets that come through the API can contain millions of records. Particularly if the region is set to *All*. Due to this circumstance, the plotting was found to take a considerable amount of time. To address this, we simply evaluate the number of rows in the data, and if necessary, take a random sample for plotting purposes.
 
 ```{r}
 # Plotting Function for Census Class 
