@@ -7,6 +7,8 @@ date: "Wednesday, October 2, 2024"
 format: 
   html:
     toc: true      
+editor_options: 
+  chunk_output_type: console
 ---
 
 \newpage
@@ -763,7 +765,7 @@ summary.census <- function(data,
 
 Created a generic plot() function for a census class tibble. Requires the user to specify one categorical variable and one numeric variable for plotting purposes.
 
-- Here we check the inputs are in the data and filter out and missing entries bfore plotting.
+- Here we check the inputs are in the data and filter out and missing entries before plotting.
 
 - The biggest point of note is the use of sampling. Some of the data sets that come through the API can contain millions of records. Particularly if the region is set to *All*. Due to this circumstance, the plotting was found to take a considerable amount of time. To address this, we simply evaluate the number of rows in the data, and if necessary, take a random sample for plotting purposes.
 
@@ -789,7 +791,7 @@ plot.census <- function(data,
   
   # If the dataset is large, take a random sample
   if (nrow(data) > sample_size) {
-    message(nrow(data), " found in dataset. Sampled ", 
+    message(nrow(data), " resords found in dataset. Sampled ", 
             sample_size, " rows for plotting.")
     set.seed(123)
     data <- data |> sample_n(sample_size)
@@ -800,7 +802,7 @@ plot.census <- function(data,
          aes(x = get(categorical_var), 
              y = get(numeric_var), 
              weight = PWGTP)) +
-    geom_boxplot() +
+    geom_boxplot(fill = "lightsteelblue", color = "black") +
     labs(
       title = paste("Boxplot of", numeric_var, "by", categorical_var),
       x = categorical_var, 
@@ -813,6 +815,18 @@ plot.census <- function(data,
 # Results
 
 ## Single Year
+
+```{r}
+test_with_defaults <- get_data_tibble_from_census_api()
+test_with_defaults |>
+  head() |>
+  knitr::kable(align = 'c')
+```
+
+```{r}
+plot.census(test_with_defaults, "AGEP", "SEX")
+```
+
 
 ## Multi Year
 
