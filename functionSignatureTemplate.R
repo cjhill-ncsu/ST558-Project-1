@@ -535,6 +535,12 @@ convert_cat_code_to_description <- function(data_column) {
   # get time references from API`
   cat_reference <- get_cat_refs(var)
   
+  # remove leading zeroes (census raw data sometimes have them, sometimes don't)
+  cat_reference[[var]] <- as.character(as.numeric(cat_reference[[var]]))
+  
+  # remove leading zeroes from the data column too
+  data_column[[var]] <- as.character(as.numeric(data_column[[var]]))
+  
   # join new lookup table to the data column with proper values
   data_column <- 
     data_column |>
@@ -787,3 +793,21 @@ test_vars |> plot.census(numeric_var = "JWAP",
 years <- c(2010:2015)
 
 query_multiple_years(years)
+
+
+# test conversion of variables
+distinct_converted_values <- function(data) {
+  
+  distinct_values <- list()
+  data_columns <- names(data)
+  i <- 1
+  
+  for (c in data_columns) {
+    distinct_values[i] <- data |> distinct(data[c])
+    names(distinct_values)[i] <- c
+    i <- i + 1
+  }
+  
+  return(distinct_values)
+  
+}
