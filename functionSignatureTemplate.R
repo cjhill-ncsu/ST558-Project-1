@@ -373,7 +373,7 @@ json_to_raw_tbl_helper <- function(census_raw) {
   
   # convert to a tibble, use 1st row from raw df as column names
   census_tbl <- as_tibble(parsed_census[-1,])
-  colnames(census_tbl) <- parsed_census[1,]
+  colnames(census_tbl) <- toupper(parsed_census[1,])
   
   # return final tibble
   return(census_tbl)
@@ -385,6 +385,11 @@ json_to_raw_tbl_helper <- function(census_raw) {
 # KATY
 process_census_data <- function(census_data_tbl) {
 
+  # if state is a column, rename as ST
+  if ("STATE" %in% names(census_data_tbl)) {
+    names(census_data_tbl)[names(census_data_tbl) == "STATE"] <- "ST"
+  }
+  
   # retrieve valid categorical variables
   cat_vars <- 
     get_valid_categorical_vars() |>      # get all valid categorical variables
