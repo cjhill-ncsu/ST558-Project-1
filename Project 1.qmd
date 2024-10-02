@@ -115,107 +115,6 @@ query_census_multiple_years <- function(years,
 
 # Data Processing
 
-## Input Validation
-
-We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.
-
-Ensure that the year is between 2010 and 2022
-
-```{r}
-# Year must be between 2010 and 2022.
-validate_year <- function(year){
-  
-  if (!(year %in% 2010:2022)) 
-    stop("Year must be between 2010 and 2022.")
-}
-```
-
-Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) below. We will check against these to ensure each variable in the input is valid.
-
-```{r}
-# PWGTP and at least one other valid numeric variable must be selected
-validate_numeric_vars <- function(numeric_vars) {
-  
-  # Not worried about case
-  valid_numeric_vars <- toupper(get_valid_numeric_vars())
-  numeric_vars <- toupper(numeric_vars)
-
-  numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
-  
-  if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
-    stop("PWGTP and at least one other numeric variable must be selected.")
-  }
-}
-```
-
-In a similar fashion, we handle categorical variable inputs. We expect at least one categorical variable from the user. It should be noted, that we are not so much interested in the case of the variables. The URL does have a standard for case, but it does not cause an error in testing. Thus, we allow it for a better user experience.
-
-```{r}
-# At least one valid categorical variable must be selected
-validate_categorical_vars <- function(categorical_vars) {
-  
-  # Not worried about case
-  valid_categorical_vars <- toupper(get_valid_categorical_vars())
-  categorical_vars <- toupper(categorical_vars)
-  
-  categorical_vars <- intersect(categorical_vars, valid_categorical_vars)
-  
-  if (length(categorical_vars) < 1) {
-    stop("At least one valid categorical variable must be selected from: ", 
-         paste(valid_categorical_vars, collapse = ", "))
-  }
-}
-```
-
-### validate_geography_and_subset
-
-Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given that geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography. 
-
-Selecting the State geography in particular is worth mentioning. We developed a [helper for states](#get_state_code) because we wanted to allow the user to provide a state name or abbreviation instead of a state code. In this way it is handled slightly different from the other geographies.
-
-```{r}
-# Geography & Subset Together
-validate_geography_and_subset <- function(geography, subset) {
-  
-  # Handle case
-  valid_geography_levels <- tolower(get_valid_geography_levels())
-  geography <- tolower(geography)
-  
-  # Validate the geography
-  if (!(geography %in% valid_geography_levels)) {
-    stop("Invalid geography level. Must be one of: ", 
-         paste(valid_geography_levels, collapse = ", "))
-  }
-  
-  # If geography is "all", subsetting is not allowed
-  if (geography == "all" && !is.null(subset)) {
-    stop("Subsetting is not allowed when geography is 'All'.")
-  }
-  
-  valid_region_division_options <- list(
-    region = tolower(c("Northeast", "Midwest", "South", "West")),
-    division = tolower(c("New England", "Middle Atlantic", 
-                         "East North Central", "West North Central", 
-                         "South Atlantic", "East South Central", 
-                         "West South Central", "Mountain", "Pacific"))
-  )
-  
-  # Check for region and division
-  if (geography %in% c("region", "division")) {
-    if (!(tolower(subset) %in% valid_region_division_options[[geography]])) {
-      stop("Invalid ", geography, ". Must be one of: ", 
-           paste(valid_region_division_options[[geography]], collapse = ", "))
-    }
-  }
-  
-  # Handle State geography
-  if (geography == "state") {
-    # get_state_code will err out if invalid
-    state_code <-  get_state_code(subset)
-  }
-}
-```
-
 ## Utilities
 
 We define a few "getter" functions that allow us to fetch the valid variables whenever required. 
@@ -364,6 +263,139 @@ get_state_code <- function(state_input) {
   
   return(result)
 }
+```
+
+## Input Validation
+
+```{r}
+#| echo: false
+# General error-handling wrapper
+test_error <- function(test) {
+  tryCatch(
+    test,
+    error = function(e) {
+      message("Caught error: ", e$message)
+    }
+  )
+}
+```
+
+
+We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.
+
+Ensure that the year is between 2010 and 2022
+
+```{r}
+# Year must be between 2010 and 2022.
+validate_year <- function(year){
+  
+  if (!(year %in% 2010:2022)) 
+    stop("Year must be between 2010 and 2022.")
+}
+```
+
+```{r}
+test_error(validate_year(2000))
+```
+
+Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) below. We will check against these to ensure each variable in the input is valid.
+
+```{r}
+# PWGTP and at least one other valid numeric variable must be selected
+validate_numeric_vars <- function(numeric_vars) {
+  
+  # Not worried about case
+  valid_numeric_vars <- toupper(get_valid_numeric_vars())
+  numeric_vars <- toupper(numeric_vars)
+
+  numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
+  
+  if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
+    stop("PWGTP and at least one other numeric variable must be selected.")
+  }
+}
+```
+
+```{r}
+test_error(validate_numeric_vars(c("Invalid")))
+```
+
+
+In a similar fashion, we handle categorical variable inputs. We expect at least one categorical variable from the user. It should be noted, that we are not so much interested in the case of the variables. The URL does have a standard for case, but it does not cause an error in testing. Thus, we allow it for a better user experience.
+
+```{r}
+# At least one valid categorical variable must be selected
+validate_categorical_vars <- function(categorical_vars) {
+  
+  # Not worried about case
+  valid_categorical_vars <- toupper(get_valid_categorical_vars())
+  categorical_vars <- toupper(categorical_vars)
+  
+  categorical_vars <- intersect(categorical_vars, valid_categorical_vars)
+  
+  if (length(categorical_vars) < 1) {
+    stop("At least one valid categorical variable must be selected from: ", 
+         paste(valid_categorical_vars, collapse = ", "))
+  }
+}
+```
+
+```{r}
+test_error(validate_categorical_vars(c("Invalid")))
+```
+
+### validate_geography_and_subset
+
+Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given that geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography. 
+
+Selecting the State geography in particular is worth mentioning. We developed a [helper for states](#get_state_code) because we wanted to allow the user to provide a state name or abbreviation instead of a state code. In this way it is handled slightly different from the other geographies.
+
+```{r}
+# Geography & Subset Together
+validate_geography_and_subset <- function(geography, subset) {
+  
+  # Handle case
+  valid_geography_levels <- tolower(get_valid_geography_levels())
+  geography <- tolower(geography)
+  
+  # Validate the geography
+  if (!(geography %in% valid_geography_levels)) {
+    stop("Invalid geography level. Must be one of: ", 
+         paste(valid_geography_levels, collapse = ", "))
+  }
+  
+  # If geography is "all", subsetting is not allowed
+  if (geography == "all" && !is.null(subset)) {
+    stop("Subsetting is not allowed when geography is 'All'.")
+  }
+  
+  valid_region_division_options <- list(
+    region = tolower(c("Northeast", "Midwest", "South", "West")),
+    division = tolower(c("New England", "Middle Atlantic", 
+                         "East North Central", "West North Central", 
+                         "South Atlantic", "East South Central", 
+                         "West South Central", "Mountain", "Pacific"))
+  )
+  
+  # Check for region and division
+  if (geography %in% c("region", "division")) {
+    if (!(tolower(subset) %in% valid_region_division_options[[geography]])) {
+      stop("Invalid ", geography, ". Must be one of: ", 
+           paste(valid_region_division_options[[geography]], collapse = ", "))
+    }
+  }
+  
+  # Handle State geography
+  if (geography == "state") {
+    # get_state_code will err out if invalid
+    state_code <-  get_state_code(subset)
+  }
+}
+```
+
+```{r}
+#validate_geography_and_subset("region", "Invalid")
+#validate_geography_and_subset("Invalid", NULL)
 ```
 
 ### validate_url_response
@@ -723,7 +755,7 @@ summary.census <- function(data,
     } else if (is.numeric(data[[var]])) {
       numeric_vector <- data[[var]]
     } else {
-      stop("Unexpected non-numeric variable found for variable: ", var)
+      stop("Unexpected non-numeric variable: ", var)
     }
     
     # Calculate weighted mean and standard deviation
@@ -745,13 +777,16 @@ summary.census <- function(data,
     )
   }
   
-  # Summarize categorical variables - using vectorization
-  categorical_summary <- data %>%
-    select(all_of(categorical_vars)) %>%
-    summarise(across(everything(), ~ list(counts = table(.))))
-
-  # Combine numeric and categorical summaries into one list
-  summary_list <- c(summary_list, as.list(categorical_summary))
+  # Summarize categorical variables
+  for (var in categorical_vars) {
+    
+    counts <-  data |> count(.data[[var]])
+    
+    # Store the results
+    summary_list[[var]] <- list(
+      counts = counts
+    )
+  }
 
   return(summary_list)
 }
@@ -823,11 +858,9 @@ test_with_defaults |>
 summary.census(test_with_defaults)
 ```
 
-
 ```{r}
 plot.census(test_with_defaults, "AGEP", "SEX")
 ```
-
 
 ## Multi Year
 
