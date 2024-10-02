@@ -13,7 +13,7 @@ editor_options:
 
 \newpage
 
-# Introduction
+# Introduction CHRIS
 
 # Setting Things Up
 
@@ -279,7 +279,6 @@ test_error <- function(test) {
   )
 }
 ```
-
 
 We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.
 
@@ -843,7 +842,7 @@ plot.census <- function(data,
 }
 ```
 
-# Results
+# Results KATY
 
 ## Single Year
 
@@ -853,6 +852,9 @@ test_with_defaults |>
   head() |>
   knitr::kable(align = 'c')
 ```
+
+
+
 
 ```{r}
 summary.census(test_with_defaults)
@@ -864,4 +866,4 @@ plot.census(test_with_defaults, "AGEP", "SEX")
 
 ## Multi Year
 
-# Conclusion
+# Conclusion KATY
