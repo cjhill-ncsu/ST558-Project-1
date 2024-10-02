@@ -745,17 +745,13 @@ summary.census <- function(data,
     )
   }
   
-  
-  # Summarize categorical variables
-  for (var in categorical_vars) {
-    
-    counts <-  data |> count(.data[[var]])
-    
-    # Store the results
-    summary_list[[var]] <- list(
-      counts = counts
-    )
-  }
+  # Summarize categorical variables - using vectorization
+  categorical_summary <- data %>%
+    select(all_of(categorical_vars)) %>%
+    summarise(across(everything(), ~ list(counts = table(.))))
+
+  # Combine numeric and categorical summaries into one list
+  summary_list <- c(summary_list, as.list(categorical_summary))
 
   return(summary_list)
 }
@@ -822,6 +818,11 @@ test_with_defaults |>
   head() |>
   knitr::kable(align = 'c')
 ```
+
+```{r}
+summary.census(test_with_defaults)
+```
+
 
 ```{r}
 plot.census(test_with_defaults, "AGEP", "SEX")
