@@ -158,74 +158,19 @@ get_state_code <- function(state_input) {
   state_input <- tolower(state_input)
   
   # Provided state codes
-  state_codes <- c(
-    "01" = "Alabama/AL",
-    "02" = "Alaska/AK",
-    "04" = "Arizona/AZ",
-    "05" = "Arkansas/AR",
-    "06" = "California/CA",
-    "08" = "Colorado/CO",
-    "09" = "Connecticut/CT",
-    "10" = "Delaware/DE",
-    "11" = "District of Columbia/DC",
-    "12" = "Florida/FL",
-    "13" = "Georgia/GA",
-    "15" = "Hawaii/HI",
-    "16" = "Idaho/ID",
-    "17" = "Illinois/IL",
-    "18" = "Indiana/IN",
-    "19" = "Iowa/IA",
-    "20" = "Kansas/KS",
-    "21" = "Kentucky/KY",
-    "22" = "Louisiana/LA",
-    "23" = "Maine/ME",
-    "24" = "Maryland/MD",
-    "25" = "Massachusetts/MA",
-    "26" = "Michigan/MI",
-    "27" = "Minnesota/MN",
-    "28" = "Mississippi/MS",
-    "29" = "Missouri/MO",
-    "30" = "Montana/MT",
-    "31" = "Nebraska/NE",
-    "32" = "Nevada/NV",
-    "33" = "New Hampshire/NH",
-    "34" = "New Jersey/NJ",
-    "35" = "New Mexico/NM",
-    "36" = "New York/NY",
-    "37" = "North Carolina/NC",
-    "38" = "North Dakota/ND",
-    "39" = "Ohio/OH",
-    "40" = "Oklahoma/OK",
-    "41" = "Oregon/OR",
-    "42" = "Pennsylvania/PA",
-    "44" = "Rhode Island/RI",
-    "45" = "South Carolina/SC",
-    "46" = "South Dakota/SD",
-    "47" = "Tennessee/TN",
-    "48" = "Texas/TX",
-    "49" = "Utah/UT",
-    "50" = "Vermont/VT",
-    "51" = "Virginia/VA",
-    "53" = "Washington/WA",
-    "54" = "West Virginia/WV",
-    "55" = "Wisconsin/WI",
-    "56" = "Wyoming/WY",
-    "72" = "Puerto Rico/PR"
-  )
+  state_codes <- get_cat_refs("ST")
   
-  # Tibble with state name and abbreviation
-  state_codes_tibble <- tibble(
-    code = names(state_codes),
-    state_info = state_codes
-  ) |> 
-    separate_wider_delim(state_info, delim = "/", 
+  state_codes_tibble <- state_codes |> 
+    separate_wider_delim(description, delim = "/", 
                          names = c("state", "abbreviation")) |>
     mutate(state = tolower(state), abbreviation = tolower(abbreviation))
+  
+  print(state_codes_tibble)
   
   # Filter down to match input
   result <- state_codes_tibble |>
     filter(state == state_input | abbreviation == state_input) |>
-    pull(code)
+    pull(ST)
   
   # Return the state code or stop if not found
   if (length(result) == 0) {
