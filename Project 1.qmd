@@ -13,11 +13,23 @@ editor_options:
 
 \newpage
 
-# Introduction CHRIS
+# Introduction
+
+*"Our goal is to write functions that will manipulate and process data sets that come from a census API."*
+
+This is direct from our project statement and effectively sums up the work below. What follows is a narrative describing some of the trials and tribulations that were overcome in implementing this direction along with the source code that serves as a working product. 
+
+The motivation for this work was to develop a user friendly set of functions that allow easily querying the census API. The user would then receive the response in format that could be immediately usable in an R session. This process involved building a valid URL from the user desired information (inputs) and then processing the API response into a formatted tibble where each column of data is in its appropriate data type.
+
+Though strict public/private functions are not enforced here, we do make note of the four distinct functions intended to be interacted with by a potential user. By building these dedicated interfaces, we can rigorously validate user inputs and hope to guide them effectively when errors do occur. 
+
+We have also relied heavily on the separation of concerns between functions to support our collaborative efforts. Small, focused functions that might possible be reused wherever possible were used with great effect and were more easily maintained.
 
 # Setting Things Up
 
 ## Collaboration Workflow
+
+As mentioned, this was collaborative effort. The project is housed in a GIT repository to facilitate this. Because of the small size of our team we had success when development was done off the main branch. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.
 
 ## Libraries
 
@@ -295,8 +307,6 @@ get_state_code <- function(state_input) {
                          names = c("state", "abbreviation")) |>
     mutate(state = tolower(state), abbreviation = tolower(abbreviation))
   
-  print(state_codes_tibble)
-  
   # Filter down to match input
   result <- state_codes_tibble |>
     filter(state == state_input | abbreviation == state_input) |>
@@ -316,7 +326,7 @@ get_state_code <- function(state_input) {
 ```{r}
 #| echo: false
 # General error-handling wrapper
-test_error <- function(test) {
+catch_error <- function(test) {
   tryCatch(
     test,
     error = function(e) {
@@ -340,7 +350,7 @@ validate_year <- function(year){
 ```
 
 ```{r}
-test_error(validate_year(2000))
+validate_year(2000) |> catch_error()
 ```
 
 Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) below. We will check against these to ensure each variable in the input is valid.
@@ -356,13 +366,14 @@ validate_numeric_vars <- function(numeric_vars) {
   numeric_vars <- intersect(numeric_vars, valid_numeric_vars)
   
   if (length(numeric_vars) < 2 || !"PWGTP" %in% numeric_vars) {
-    stop("PWGTP and at least one other numeric variable must be selected.")
+    stop("PWGTP and at least one other numeric variable must be selected from: ", 
+         paste(valid_numeric_vars, collapse = ", "))
   }
 }
 ```
 
 ```{r}
-test_error(validate_numeric_vars(c("Invalid")))
+validate_numeric_vars(c("Invalid")) |> catch_error()
 ```
 
 
@@ -386,7 +397,7 @@ validate_categorical_vars <- function(categorical_vars) {
 ```
 
 ```{r}
-test_error(validate_categorical_vars(c("Invalid")))
+validate_categorical_vars(c("Invalid")) |> catch_error()
 ```
 
 ### validate_geography_and_subset
@@ -439,8 +450,8 @@ validate_geography_and_subset <- function(geography, subset) {
 ```
 
 ```{r}
-#validate_geography_and_subset("region", "Invalid")
-#validate_geography_and_subset("Invalid", NULL)
+validate_geography_and_subset("region", "Invalid") |> catch_error()
+validate_geography_and_subset("Invalid", NULL) |> catch_error()
 ```
 
 ### validate_url_response
@@ -460,17 +471,28 @@ validate_url_response <- function(response) {
   response_content <- content(response, as = "text")
   has_content <- !is.null(response_content) && nchar(response_content) > 0
   
-  if (!is_success || !has_content) {
+  error_in_content <- str_detect(tolower(response_content), 
+                                 "error|not found|invalid|rejected")
+
+  if (!is_success || !has_content || error_in_content) {
     stop("API request failed: ", 
-         if (!is_success) 
-           http_status(census_raw)$message 
-         else 
-           "Empty response from API."
+           if (!is_success) {
+             http_status(census_raw)$message 
+           } else if (!has_content) {
+             "Empty response from API."
+           } else {
+             "Error returned from API"
+           }
          )
   }
   
   print("API request successful")
 }
+```
+
+```{r}
+validate_url_response(httr::GET("https://api.census.gov/invalid")) |>
+  catch_error()
 ```
 
 ## Building the URL
