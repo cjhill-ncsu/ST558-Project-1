@@ -131,7 +131,18 @@ get_valid_categorical_vars <- function() {
 get_valid_geography_levels <- function() {
   c("All", "Region", "Division", "State")
 }
+```
 
+### get_time_refs
+
+- This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble (an undertaking that proved arduous and time-consuming).
+- The URL for the API endpoint is actually a .json, so that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list. 
+- Bind_rows was used to get those elements into a single tibble, so now each named element was its own column. This data table was transposed using pivot_longer to get just 2 columns, one for the time code and the other for the time range
+- Getting from the text time ranges, e.g. "8:50 a.m. to 8:54 a.m." to a nice, clean time (08:52:00) took awhile and a few tries. On the first pass, we assumed both JWAP and JWDP had consistent time ranges, so the first version just took a substring for the first time in the interval, converted it to time, and add 2 minutes to JWAP values and 5 minutes to JWDP values. 
+- While debugging the issue with time code values changing from factor to numeric, we realized that JWDP had varying intervals. The logic was changed to take both the starting and ending times to compute the midpoint of the interval
+- Since we had to repeat the same actions on two different strings to get them both in correct time format, these steps were put into a loop. After that, getting the final time and removing the extraneous columns was pretty straightforward.
+
+```{r}
 get_time_refs <- function(time_code) {
   
   # construct url from the time_code (JWDP or JWAP)
@@ -193,7 +204,15 @@ get_time_refs <- function(time_code) {
   return(times_ref)
   
 }
+```
 
+### get_cat_refs
+
+- When it was stated in a message on the discussion board that we should convert all categorical values to their meaningful versions, we realized we needed to create reference tables with an API call
+- We were able to utilize our existing [get_time_refs](#get_time_refs) function and create a simplified version for the categorical variables.
+- This is a helper function for the [function that actually performs the conversion](#convert_cat_code_to_description), described below
+
+```{r}
 get_cat_refs <- function(cat_code) {
   
   # construct url from the time_code (JWDP or JWAP)
@@ -565,9 +584,9 @@ build_query_url <- function(year = 2022,
 
 ### query_census_with_url
 
-- I followed the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
-- I wrote a series of helper functions to keep better track of what each step within this function was doing, which helped me stay focused on small tasks rather than get overwhelmed by everything that had to be done to get the final clean data
-- The data frame that came out of the JSON to data frame helper had all the data in columns, but everything was character, so I wrote a final helper function, process_census_data
+- We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
+- A series of helper functions were developed to keep better track of what each step within this function was doing, which helped to focus on small tasks rather than getting overwhelmed by everything that had to be done to get the final clean data
+- The data frame that came out of the JSON-to-data-frame helper had all the data in columns, but everything was character, so a [final helper function](#process_census_data) takes care of cleaning the data
 
 ```{r}
 query_census_with_url <- function(url) {
@@ -617,11 +636,11 @@ json_to_raw_tbl_helper <- function(census_raw) {
 - This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.
 - It was straight-forward to coerce categorical fields into factors, and the regular numeric fields into numeric.
 - It took a lot of debugging and research to get the time fields right. 
-    + At first, I was converting them to factors since JWAP/JWDP were both also initially considered both numerical and categorical variables. 
-    + However, when Chris was working on the plots, he noticed a lot of values were close to midnight. I thought that was strange, so I pulled the data and found a lot of values that were actually 0 were getting changed to 1 somewhere along the way. 
-    + I looked to see if there was something wrong with the join to the time reference table (which provided a time for each time code), and it looked right. 
-    + However, I found that when I coerced them directly from factors to numeric, all of the values changed. So that's how I learned that when factors are coerced directly to numeric, what you are changing are actually the cardinal levels and not the level description. So "0" was changing to 1 because it was the lowest (first) level. This of course meant that *all* of the values were now wrong. 
-    + Since Dr. Post confirmed that JWAP/JWDP didn't need to be categorical values, I removed the step that was converting them to factors, and the values now converted (from character) as expected.
+    + At first, they were converted to factors since JWAP/JWDP were both also initially considered both numerical and categorical variables. 
+    + However, we noticed a lot of values were close to midnight. Further investigation found that a lot of values that were actually 0 were getting changed to 1 somewhere along the way. 
+    + We looked to see if there was something wrong with the join to the time reference table (which provided a time for each time code), and it looked right. 
+    + However, we discovered that when they were coerced directly from factors to numeric, all of the values changed, since what we were changing were actually the cardinal levels and not the level description. So "0" was changing to 1 because it was the lowest (first) level. This of course meant that *all* of the values were now wrong. 
+    + Since Dr. Post confirmed that JWAP/JWDP didn't need to be categorical values, we removed the step that was converting them to factors, and the values now converted (from character) as expected.
 
 ```{r}
 process_census_data <- function(census_data_tbl) {
@@ -678,7 +697,7 @@ process_census_data <- function(census_data_tbl) {
 
 - This is another helper function to take the numerical time codes and change them to a meaningful time
 - It starts with another helper function to get a reference tibble that provides the key-value pairs for each time code and time
-- It takes the census data and left joins to the time reference table, and replaces the JWAP raw value with the actual time. I couldn't figure out how to use a variable as one of the keys in the "by" argument, so unfortunately I had to do it as a natural join. It's not ideal, but it does work. It meant the names of the primary and foreign keys in each table had to match (i.e. JWAP or JWDP), and that no other columns between the two tables could share the same name.
+- It takes the census data and left joins to the time reference table, and replaces the JWAP raw value with the actual time. Using a variable as one of the keys in the "by" argument proved elusive, so we kept it as a natural join. It's not ideal, but it does work. It meant the names of the primary and foreign keys in each table had to match (i.e. JWAP or JWDP), and that no other columns between the two tables could share the same name.
 - The final step was to replace the values in JWAP/JWDP with the correct time from the 2nd table, and drop the now duplicate field that had been pulled in (named JWAP_clean or JWDP_clean)
 
 ```{r}
@@ -704,18 +723,10 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
 
 ```
 
-### get_time_refs - NOTE: moved to the getters section; review narrative below, move to another section?
-
-- This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble
-- This is probably the function I spent the most time getting to work properly.
-- The url for the API endpoint is actually a .json, so I think that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list. 
-- I used bind_rows to get those elements into a single tibble, so now each named element was its own column. I transposed the data table with pivot_longer to get just 2 columns, one for the time code and the other for the time range
-- Getting from the text time ranges, e.g. "8:50 a.m. to 8:54 a.m." to a nice, clean time (08:52:00) took me awhile and a few tries. On my first pass, I thought that both JWAP and JWDP had consistent time ranges, so I set up the code to just take a substring for the first time in the interval, convert it to time, and add 2 minutes to JWAP values and 5 minutes to JWDP values. 
-- While debugging the issue I mentioned before about the time codes changing when coercing from factor to numeric, I looked more closely at the reference tables and realized that JWDP had varying intervals. So I had to change the logic to take both the starting and ending times to compute the midpoint of the interval
-- Since I had to repeat the same actions on two different strings to get them both in correct time format, I put in a loop. After that, getting the final time and removing the extraneous columns was pretty straightforward.
-
-
 ### convert_cat_code_to_description
+
+- The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table
+- Since it appeared sometimes raw data seemed to omit leading zeroes, we decided to remove all leading zeroes to ensure the joins matched values appropriately. This was accomplished by coercing the character values to numeric, and then back to character.
 
 ```{r}
 # take categorical raw value and convert to descriptive value, and make a factor
