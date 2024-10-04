@@ -29,7 +29,7 @@ We have also relied heavily on the separation of concerns between functions to s
 
 ## Collaboration Workflow
 
-As mentioned, this was collaborative effort. The project is housed in a GIT repository to facilitate this. Because of the small size of our team we had success when development was done off the main branch. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.
+As mentioned in the introduction, this project was collaborative. The project is housed in a GIT repository to facilitate this. Because of the small size of our team we had development success working off the main branch. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.
 
 ## Libraries
 
@@ -44,7 +44,7 @@ library(hms)
 
 ## Primary User Interface Methods
 
-The following two functions are designed to take user input and return a properly formatted and easy to use data table in the form of a **tibble**. They will validate each input from the user and pass them into functions whose purpose is the work of creating, processing, and handling our api request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures. 
+The following two functions are designed to take user input and return a properly formatted and easy to use data table in the form of a tibble. They will validate each input from the user and pass them into functions whose purpose is the work of creating, processing, and handling our api request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures. 
 
 We will also introduce two further interface methods that allow for additional features such as summaries and plots. These [Generic Class Functions](#generic-class-functions) will take the tibble retrieved from the census API do display meaningful summaries and plots depending on the user's demands.
 
@@ -83,7 +83,9 @@ get_data_tibble_from_census_api <- function(year = 2022,
 ### query_census_multiple_years
 
 - In addition to the same arguments as the single year version, this function also takes in a range of years
+
 - A loop calls the single year function with each iteration, adding the results as new elements to a list. Each tibble also has a new column designating the year. 
+
 - After the loop, bind rows is used to combine all results into one tibble
 
 ```{r}
@@ -148,10 +150,15 @@ get_valid_geography_levels <- function() {
 ### get_time_refs
 
 - This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble (an undertaking that proved arduous and time-consuming).
+
 - The URL for the API endpoint is actually a .json, so that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list. 
+
 - Bind_rows was used to get those elements into a single tibble, so now each named element was its own column. This data table was transposed using pivot_longer to get just 2 columns, one for the time code and the other for the time range
+
 - Getting from the text time ranges, e.g. "8:50 a.m. to 8:54 a.m." to a nice, clean time (08:52:00) took awhile and a few tries. On the first pass, we assumed both JWAP and JWDP had consistent time ranges, so the first version just took a substring for the first time in the interval, converted it to time, and add 2 minutes to JWAP values and 5 minutes to JWDP values. 
+
 - While debugging the issue with time code values changing from factor to numeric, we realized that JWDP had varying intervals. The logic was changed to take both the starting and ending times to compute the midpoint of the interval
+
 - Since we had to repeat the same actions on two different strings to get them both in correct time format, these steps were put into a loop. After that, getting the final time and removing the extraneous columns was pretty straightforward.
 
 ```{r}
@@ -214,14 +221,15 @@ get_time_refs <- function(time_code) {
 
   # return final clean ref table
   return(times_ref)
-  
 }
 ```
 
 ### get_cat_refs
 
 - When it was stated in a message on the discussion board that we should convert all categorical values to their meaningful versions, we realized we needed to create reference tables with an API call
+
 - We were able to utilize our existing [get_time_refs](#get_time_refs) function and create a simplified version for the categorical variables.
+
 - This is a helper function for the [function that actually performs the conversion](#convert_cat_code_to_description), described below
 
 ```{r}
@@ -241,57 +249,60 @@ get_cat_refs <- function(cat_code) {
                  values_to = "description")
 
   return(cat_ref)
-  
 }
+```
 
-
+```{r}
+get_cat_refs("REGION") |> knitr::kable(align = 'c')
 ```
 
 ### get_subset_code
 
 In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset's numeric code to be used in the URL itself. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
 
+- A great opportunity was taken to reuse the get_cat_refs above here. The regions and divisions had previously been hard-coded within this function but could now be pulled directly from the API using a single function call.
+
 ```{r}
 get_subset_code <- function(geography, subset) {
-  
+
   if (is.null(subset)) {
     return("*")
   }
-  
-  # Mappings for regions and divisions
-  region_codes <- list(
-    "Northeast" = "1", 
-    "Midwest" = "2", 
-    "South" = "3", 
-    "West" = "4"
-  )
-  
-  division_codes <- list(
-    "New England" = "1", 
-    "Middle Atlantic" = "2", 
-    "East North Central" = "3", 
-    "West North Central" = "4", 
-    "South Atlantic" = "5", 
-    "East South Central" = "6", 
-    "West South Central" = "7", 
-    "Mountain" = "8", 
-    "Pacific" = "9"
-  )
-  
+
   geography <- tolower(geography)
+
+  # use get_cat_refs
+  region_codes <- get_cat_refs("REGION") |>
+    select(description, REGION)
   
+  division_codes <- get_cat_refs("DIVISION") |>
+    select(description, DIVISION) |>
+    # Division codes come back with unwanted info in parenthesis
+    mutate(description = str_remove(description, "\\s*\\(.*?\\)"))
+
   # Switch based on geography type
   switch(geography,
-         "region" = region_codes[[subset]],
-         "division" = division_codes[[subset]],
+         "region" = region_codes |>
+                    filter(tolower(description) == tolower(subset)) |>
+                    pull(REGION),
+         "division" = division_codes |>
+                    filter(tolower(description) == tolower(subset)) |>
+                    pull(DIVISION),
          "state" = get_state_code(subset),  
          stop("Invalid geography type"))
 }
 ```
 
+```{r}
+get_subset_code("region", "south")
+get_subset_code("division", "mountain")
+```
+
 ### get_state_code
 
 As mentioned, we have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a *stop()* within it that will allow us the validate if the the state input returns a valid code.
+
+- Another fantastic example of function reuse. Initially for get_state_code, the codes and their corresponding states were hardcoded as a named vector and contained within. This was refactored however to use the previously defined [get_cat_refs()](#get_cat_refs). 
 
 ```{r}
 # Function to get state code from state name or abbreviation
@@ -319,6 +330,11 @@ get_state_code <- function(state_input) {
   
   return(result)
 }
+```
+
+```{r}
+get_state_code("North Carolina")
+get_state_code("NC")
 ```
 
 ## Input Validation
@@ -551,7 +567,9 @@ build_query_url <- function(year = 2022,
 ### query_census_with_url
 
 - We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
+
 - A series of helper functions were developed to keep better track of what each step within this function was doing, which helped to focus on small tasks rather than getting overwhelmed by everything that had to be done to get the final clean data
+
 - The data frame that came out of the JSON-to-data-frame helper had all the data in columns, but everything was character, so a [final helper function](#process_census_data) takes care of cleaning the data
 
 ```{r}
@@ -571,14 +589,13 @@ query_census_with_url <- function(url) {
   
   # return final clean tibble
   return(census_clean_tbl)
-  
 }
-
 ```
 
 ### json_to_raw_tbl_helper
 
 - This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character
+
 - The data frame that was created from JSON had the column names in the first row, so a step was included to grab the first row as the column names, and take the rest of the rows as the observations
 
 ```{r}
@@ -594,13 +611,14 @@ json_to_raw_tbl_helper <- function(census_raw) {
   # return final tibble
   return(census_tbl)
 }
-
 ```
 
 ### process_census_data
 
 - This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.
+
 - It was straight-forward to coerce categorical fields into factors, and the regular numeric fields into numeric.
+
 - It took a lot of debugging and research to get the time fields right. 
     + At first, they were converted to factors since JWAP/JWDP were both also initially considered both numerical and categorical variables. 
     + However, we noticed a lot of values were close to midnight. Further investigation found that a lot of values that were actually 0 were getting changed to 1 somewhere along the way. 
@@ -654,16 +672,17 @@ process_census_data <- function(census_data_tbl) {
   
   # return clean tibble
   return(census_data_tbl)
-  
 }
-
 ```
 
 ### convert_num_code_to_time
 
 - This is another helper function to take the numerical time codes and change them to a meaningful time
+
 - It starts with another helper function to get a reference tibble that provides the key-value pairs for each time code and time
+
 - It takes the census data and left joins to the time reference table, and replaces the JWAP raw value with the actual time. Using a variable as one of the keys in the "by" argument proved elusive, so we kept it as a natural join. It's not ideal, but it does work. It meant the names of the primary and foreign keys in each table had to match (i.e. JWAP or JWDP), and that no other columns between the two tables could share the same name.
+
 - The final step was to replace the values in JWAP/JWDP with the correct time from the 2nd table, and drop the now duplicate field that had been pulled in (named JWAP_clean or JWDP_clean)
 
 ```{r}
@@ -686,12 +705,12 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
   
   return(census_data_tbl)
 }
-
 ```
 
 ### convert_cat_code_to_description
 
 - The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table
+
 - Since it appeared sometimes raw data seemed to omit leading zeroes, we decided to remove all leading zeroes to ensure the joins matched values appropriately. This was accomplished by coercing the character values to numeric, and then back to character.
 
 ```{r}
@@ -717,9 +736,7 @@ convert_cat_code_to_description <- function(data_column) {
   
   # return new data column with descriptive values, as factor
   return(as.factor(data_column[[2]]))
-  
 }
-
 ```
 
 
@@ -736,6 +753,8 @@ By default, it will summarize all numeric variables (other than PWGTP) and all c
 - Categorical variables will have their level counts displayed.
 
 - Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into *seconds from midnight* to perform calculation on them. We then convert back to HMS to be in a more friendly format.
+
+- There are loops in this function that traverse across the columns of data and summarize them accordingly. Within each iteration of the loop, we utilize *vectorized functions* to process and make calculations across all observations in the vector of values for that column/variable. Since there are only a small number of variables that ever need be looped across, these loops were left intact. This however, could be a refactoring opportunity as we might wish to avoid loops in R altogether.
 
 ```{r}
 # Summary Function for Census Class
@@ -882,9 +901,6 @@ test_with_defaults |>
   head() |>
   knitr::kable(align = 'c')
 ```
-
-
-
 
 ```{r}
 summary.census(test_with_defaults)
