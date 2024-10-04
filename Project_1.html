@@ -60,16 +60,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="Project 1_files/libs/clipboard/clipboard.min.js"></script>
-<script src="Project 1_files/libs/quarto-html/quarto.js"></script>
-<script src="Project 1_files/libs/quarto-html/popper.min.js"></script>
-<script src="Project 1_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="Project 1_files/libs/quarto-html/anchor.min.js"></script>
-<link href="Project 1_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Project 1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="Project 1_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="Project 1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Project 1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Project_1_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Project_1_files/libs/quarto-html/quarto.js"></script>
+<script src="Project_1_files/libs/quarto-html/popper.min.js"></script>
+<script src="Project_1_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Project_1_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Project_1_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Project_1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Project_1_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Project_1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Project_1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -1059,8 +1059,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb44-36"><a href="#cb44-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> categorical_var, </span>
 <span id="cb44-37"><a href="#cb44-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> numeric_var </span>
 <span id="cb44-38"><a href="#cb44-38" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb44-39"><a href="#cb44-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span>
-<span id="cb44-40"><a href="#cb44-40" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb44-39"><a href="#cb44-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb44-40"><a href="#cb44-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) </span>
+<span id="cb44-41"><a href="#cb44-41" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -1156,7 +1157,7 @@ $SEX$counts
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Project-1_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Project_1_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1164,16 +1165,17 @@ $SEX$counts
 <hr>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>test_with_vars <span class="ot">&lt;-</span> <span class="fu">get_data_tibble_from_census_api</span>(<span class="dv">2015</span>,</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"JWMNP"</span>),</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"SEX"</span>),</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"JWAP"</span>),</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"HHL"</span>),</span>
 <span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"state"</span>,</span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"NC"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"nc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2015/acs/acs5/pums?get=PWGTP,JWMNP,SEX&amp;for=state:37[1] "API request successful"</code></pre>
+<pre><code>URL:  https://api.census.gov/data/2015/acs/acs5/pums?get=PWGTP,JWAP,HHL&amp;for=state:37[1] "API request successful"</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(SEX)`
-Joining with `by = join_by(ST)`</code></pre>
+<pre><code>Joining with `by = join_by(HHL)`
+Joining with `by = join_by(ST)`
+Joining with `by = join_by(JWAP)`</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>test_with_vars <span class="sc">|&gt;</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
@@ -1183,46 +1185,46 @@ Joining with `by = join_by(ST)`</code></pre>
 <thead>
 <tr class="header">
 <th style="text-align: center;">PWGTP</th>
-<th style="text-align: center;">JWMNP</th>
-<th style="text-align: center;">SEX</th>
+<th style="text-align: center;">JWAP</th>
+<th style="text-align: center;">HHL</th>
 <th style="text-align: center;">ST</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">3</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">Male</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">English Only</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">3</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">Female</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">English Only</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">5</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">Male</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">English Only</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">6</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">Male</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">English Only</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">13</td>
-<td style="text-align: center;">5</td>
-<td style="text-align: center;">Male</td>
+<td style="text-align: center;">04:07:00</td>
+<td style="text-align: center;">Spanish</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">12</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">Male</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">Spanish</td>
 <td style="text-align: center;">North Carolina/NC</td>
 </tr>
 </tbody>
@@ -1232,32 +1234,36 @@ Joining with `by = join_by(ST)`</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary.census</span>(test_with_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>$JWMNP
-$JWMNP$mean
-[1] 10.0609
+<pre><code>$JWAP
+$JWAP$mean
+03:45:33.0226
 
-$JWMNP$sd
-[1] 17.70336
+$JWAP$sd
+04:58:32.467112
 
 
-$SEX
-$SEX$counts
-# A tibble: 2 × 2
-  SEX         n
-  &lt;fct&gt;   &lt;int&gt;
-1 Female 251971
-2 Male   234933</code></pre>
+$HHL
+$HHL$counts
+# A tibble: 6 × 2
+  HHL                                     n
+  &lt;fct&gt;                               &lt;int&gt;
+1 Asian and Pacific Island languages   8659
+2 English Only                       405007
+3 N/A (GQ/vacant)                     24922
+4 Other Indo-European languages       11492
+5 Other Language                       2921
+6 Spanish                             33903</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.census</span>(test_with_vars, <span class="st">"JWMNP"</span>, <span class="st">"SEX"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.census</span>(test_with_vars, <span class="st">"JWAP"</span>, <span class="st">"HHL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>486904 resords found in dataset. Sampled 1e+05 rows for plotting.</code></pre>
+<pre><code>198175 resords found in dataset. Sampled 1e+05 rows for plotting.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Project-1_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Project_1_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
