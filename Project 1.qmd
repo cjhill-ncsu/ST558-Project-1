@@ -131,7 +131,7 @@ query_census_multiple_years <- function(years,
 
 ## Utilities
 
-We define a few "getter" functions that allow us to fetch the valid variables whenever required. 
+We define several helper functions that allow us to fetch particular sets of information whenever required. These facilitate readability, reusability, and our approach to separate concerns.
 
 ```{r}
 get_valid_numeric_vars <- function() {
@@ -502,6 +502,7 @@ validate_url_response <- function(response) {
          )
   }
   
+  # print to console to show progression in request
   print("API request successful")
 }
 ```
@@ -527,7 +528,7 @@ build_query_url <- function(year = 2022,
                             numeric_vars = c("AGEP", "PWGTP"), 
                             categorical_vars = c("SEX"), 
                             geography = "State", 
-                            subset = 8) {
+                            subset = "CO") {
 
   dataset_type <- ifelse(year == 2021 || year == 2022, "acs1", "acs5")
   
@@ -557,9 +558,15 @@ build_query_url <- function(year = 2022,
     final_url <- paste0(final_url, "&", geography_query)
   }
   
+  # print to console to show progression in request
   cat("URL: ", final_url)
+  
   return(final_url)
 }
+```
+
+```{r}
+test_url <- build_query_url()
 ```
 
 ## Processing the Response
