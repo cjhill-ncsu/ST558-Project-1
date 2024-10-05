@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.57">
+<meta name="generator" content="quarto-1.4.555">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -36,7 +36,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -204,10 +204,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># User interface to take inputs and return fully processed data tibble</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>get_data_tibble_from_census_api <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">year =</span> <span class="dv">2022</span>, </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">numeric_vars =</span> <span class="fu">c</span>(<span class="st">"AGEP"</span>, <span class="st">"PWGTP"</span>), </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">categorical_vars =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>), </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">geography =</span> <span class="st">"State"</span>, </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">subset =</span> <span class="st">"CO"</span>) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">numeric_vars =</span> <span class="fu">c</span>(<span class="st">"AGEP"</span>, <span class="st">"PWGTP"</span>), </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">categorical_vars =</span> <span class="fu">c</span>(<span class="st">"SEX"</span>), </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">geography =</span> <span class="st">"State"</span>, </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">subset =</span> <span class="st">"CO"</span>) {</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># validate the user inputs</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">validate_year</span>(year)</span>
@@ -294,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="get_time_refs" class="level3">
 <h3 class="anchored" data-anchor-id="get_time_refs">get_time_refs</h3>
 <ul>
-<li><p>This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble (an undertaking that proved arduous and time-consuming).</p></li>
+<li><p>This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble, an undertaking that proved arduous and time-consuming.</p></li>
 <li><p>The URL for the API endpoint is actually a .json, so that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list.</p></li>
 <li><p>Bind_rows was used to get those elements into a single tibble, so now each named element was its own column. This data table was transposed using pivot_longer to get just 2 columns, one for the time code and the other for the time range</p></li>
 <li><p>Getting from the text time ranges, e.g.&nbsp;“8:50 a.m. to 8:54 a.m.” to a nice, clean time (08:52:00) took awhile and a few tries. On the first pass, we assumed both JWAP and JWDP had consistent time ranges, so the first version just took a substring for the first time in the interval, converted it to time, and add 2 minutes to JWAP values and 5 minutes to JWDP values.</p></li>
@@ -428,7 +428,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="get_subset_code" class="level3">
 <h3 class="anchored" data-anchor-id="get_subset_code">get_subset_code</h3>
-<p>In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset’s numeric code to be used in the URL itself. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.</p>
+<p>In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset’s numeric code to be used in the URL itself. If the subset is NULL, we simply return an asterisk to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.</p>
 <ul>
 <li>A great opportunity was taken to reuse the get_cat_refs above here. The regions and divisions had previously been hard-coded within this function but could now be pulled directly from the API using a single function call.</li>
 </ul>
@@ -1042,7 +1042,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># If the dataset is large, take a random sample</span></span>
 <span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(data) <span class="sc">&gt;</span> sample_size) {</span>
-<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="fu">nrow</span>(data), <span class="st">" resords found in dataset. Sampled "</span>, </span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="fu">nrow</span>(data), <span class="st">" records found in dataset. Sampled "</span>, </span>
 <span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a>            sample_size, <span class="st">" rows for plotting."</span>)</span>
 <span id="cb44-24"><a href="#cb44-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb44-25"><a href="#cb44-25" aria-hidden="true" tabindex="-1"></a>    data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span> <span class="fu">sample_n</span>(sample_size)</span>
@@ -1069,6 +1069,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Results KATY</h1>
 <section id="single-year" class="level2">
 <h2 class="anchored" data-anchor-id="single-year">Single Year</h2>
+<p>First, we demonstrate the output of the main function using default values.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>test_with_defaults <span class="ot">&lt;-</span> <span class="fu">get_data_tibble_from_census_api</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1132,6 +1133,7 @@ Joining with `by = join_by(ST)`</code></pre>
 </table>
 </div>
 </div>
+<p>Without supplying specific categorical and numeric values, note how the summary function returns results for all numeric variables except for the weight, along with all categorical variables.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary.census</span>(test_with_defaults)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1152,6 +1154,7 @@ $SEX$counts
 2 Male   29940</code></pre>
 </div>
 </div>
+<p>Recall that our plot requires one numeric and one categorical variable, so since our data in this example were generated from defaults, we used Age for the numeric variable, and Sex for the categorical variable.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.census</span>(test_with_defaults, <span class="st">"AGEP"</span>, <span class="st">"SEX"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1163,6 +1166,7 @@ $SEX$counts
 </div>
 </div>
 <hr>
+<p>For our investigative demonstration, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>test_with_vars <span class="ot">&lt;-</span> <span class="fu">get_data_tibble_from_census_api</span>(<span class="dv">2015</span>,</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"JWAP"</span>),</span>
@@ -1255,10 +1259,11 @@ $HHL$counts
 6 Spanish                             33903</code></pre>
 </div>
 </div>
+<p>The boxplots show that the center of the distributions are all very similar, regardless of household language. There is more variation in the interquartile ranges for the different languages.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.census</span>(test_with_vars, <span class="st">"JWAP"</span>, <span class="st">"HHL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>198175 resords found in dataset. Sampled 1e+05 rows for plotting.</code></pre>
+<pre><code>198175 records found in dataset. Sampled 1e+05 rows for plotting.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -1271,6 +1276,19 @@ $HHL$counts
 </section>
 <section id="multi-year" class="level2">
 <h2 class="anchored" data-anchor-id="multi-year">Multi Year</h2>
+<p>To showcase our multi-year function, we will view the monthly gas cost (GASP) for the Northeast region, for years 2016 through 2018, by whether they have given birth within the last 12 months (FER).</p>
+<p><strong><em>This is taking way too long, removing code block for now</em></strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="ot">&lt;-</span> <span class="fu">query_census_multiple_years</span>(<span class="dv">2016</span><span class="sc">:</span><span class="dv">2018</span>, </span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                                               <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"GASP"</span>), </span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="st">"FER"</span>, </span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">geography =</span> <span class="st">"Region"</span>, </span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">subset =</span> <span class="st">"Northeast"</span>)</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="sc">|&gt;</span></span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">'c'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 </section>
 <section id="conclusion-katy" class="level1">
@@ -1314,7 +1332,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const onCopySuccess = function(e) {
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1346,29 +1375,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
-  }
-  const getTextToCopy = function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
-    text: getTextToCopy
   });
-  clipboard.on('success', onCopySuccess);
-  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    // For code content inside modals, clipBoardJS needs to be initialized with a container option
-    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
-    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-      text: getTextToCopy,
-      container: window.document.getElementById('quarto-embedded-source-code-modal')
-    });
-    clipboardModal.on('success', onCopySuccess);
-  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp('/' + window.location.host + '/');
@@ -1376,7 +1383,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {

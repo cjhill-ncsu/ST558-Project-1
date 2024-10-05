@@ -59,10 +59,10 @@ We will also introduce two further interface methods that allow for additional f
 ```{r}
 # User interface to take inputs and return fully processed data tibble
 get_data_tibble_from_census_api <- function(year = 2022, 
-                                     numeric_vars = c("AGEP", "PWGTP"), 
-                                     categorical_vars = c("SEX"), 
-                                     geography = "State", 
-                                     subset = "CO") {
+                                            numeric_vars = c("AGEP", "PWGTP"), 
+                                            categorical_vars = c("SEX"), 
+                                            geography = "State", 
+                                            subset = "CO") {
   
   # validate the user inputs
   validate_year(year)
@@ -149,7 +149,7 @@ get_valid_geography_levels <- function() {
 
 ### get_time_refs
 
-- This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble (an undertaking that proved arduous and time-consuming).
+- This function does an API call to retrieve the time codes and their associated time ranges in a JSON string and processes them into a tibble, an undertaking that proved arduous and time-consuming.
 
 - The URL for the API endpoint is actually a .json, so that might be why the data come in differently than the API call for the census data. The values actually came in the form of a list with all 151-286 values as individual elements in that list. 
 
@@ -258,7 +258,7 @@ get_cat_refs("REGION") |> knitr::kable(align = 'c')
 
 ### get_subset_code
 
-In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset's numeric code to be used in the URL itself. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
+In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset's numeric code to be used in the URL itself. If the subset is NULL, we simply return an asterisk to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
 
 - A great opportunity was taken to reuse the get_cat_refs above here. The regions and divisions had previously been hard-coded within this function but could now be pulled directly from the API using a single function call.
 
@@ -877,7 +877,7 @@ plot.census <- function(data,
   
   # If the dataset is large, take a random sample
   if (nrow(data) > sample_size) {
-    message(nrow(data), " resords found in dataset. Sampled ", 
+    message(nrow(data), " records found in dataset. Sampled ", 
             sample_size, " rows for plotting.")
     set.seed(123)
     data <- data |> sample_n(sample_size)
@@ -903,6 +903,8 @@ plot.census <- function(data,
 
 ## Single Year
 
+First, we demonstrate the output of the main function using default values.
+
 ```{r}
 test_with_defaults <- get_data_tibble_from_census_api()
 test_with_defaults |>
@@ -910,15 +912,22 @@ test_with_defaults |>
   knitr::kable(align = 'c')
 ```
 
+
+Without supplying specific categorical and numeric values, note how the summary function returns results for all numeric variables except for the weight, along with all categorical variables.
+
 ```{r}
 summary.census(test_with_defaults)
 ```
+
+Recall that our plot requires one numeric and one categorical variable, so since our data in this example were generated from defaults, we used Age for the numeric variable, and Sex for the categorical variable.
 
 ```{r}
 plot.census(test_with_defaults, "AGEP", "SEX")
 ```
 
 ---
+
+For our investigative demonstration, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.
 
 ```{r}
 test_with_vars <- get_data_tibble_from_census_api(2015,
@@ -931,14 +940,37 @@ test_with_vars |>
   knitr::kable(align = 'c')
 ```
 
+
+
 ```{r}
 summary.census(test_with_vars)
 ```
+
+The boxplots show that the center of the distributions are all very similar, regardless of household language. There is more variation in the interquartile ranges for the different languages. 
 
 ```{r}
 plot.census(test_with_vars, "JWAP", "HHL")
 ```
 
 ## Multi Year
+
+To showcase our multi-year function, we will view the monthly gas cost (GASP) for the Northeast region, for years 2016 through 2018, by whether they have given birth within the last 12 months (FER).
+
+***This is taking way too long, not executing this code block for now***
+
+```{r}
+#| eval = FALSE
+
+test_multi_year <- query_census_multiple_years(2016:2018, 
+                                               c("PWGTP", "GASP"), 
+                                               "FER", 
+                                               geography = "Region", 
+                                               subset = "Northeast")
+
+test_multi_year |>
+  head() |>
+  knitr::kable(align = 'c')
+```
+
 
 # Conclusion KATY
