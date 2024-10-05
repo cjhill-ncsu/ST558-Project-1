@@ -19,17 +19,19 @@ editor_options:
 
 This is direct from our project statement and effectively sums up the work below. What follows is a narrative describing some of the trials and tribulations that were overcome in implementing this direction along with the source code that serves as a working product. 
 
-The motivation for this work was to develop a user friendly set of functions that allow easily querying the census API. The user would then receive the response in format that could be immediately usable in an R session. This process involved building a valid URL from the user desired information (inputs) and then processing the API response into a formatted tibble where each column of data is in its appropriate data type.
+The motivation for this work was to develop a user friendly set of functions that allow us to easily query the census API. The user would then receive the response in a format that could be immediately usable in an R session for further analysis. In this case in the form of a tibble. 
 
-Though strict public/private functions are not enforced here, we do make note of the four distinct functions intended to be interacted with by a potential user. By building these dedicated interfaces, we can rigorously validate user inputs and hope to guide them effectively when errors do occur. 
+This process involved building a valid URL from the user-desired information (inputs). These inputs were validated and used to construct the URl that requests user-defined information from the API. Once successful, the API response is then processed into a formatted tibble where each column of data is converted to its appropriate data type.
 
-We have also relied heavily on the separation of concerns between functions to support our collaborative efforts. Small, focused functions that might possible be reused wherever possible were used with great effect and were more easily maintained.
+Though strict public/private functions are not enforced here, we do make note of the four distinct functions intended to be interacted with by a potential user. By building these dedicated interfaces, we can rigorously validate user inputs and hope to provide effective feedback to guide the user if an error occurs.
+
+We have also relied heavily on the separation of concerns between functions to support our collaborative efforts. Small, focused functions that might be reused wherever possible were implemented with great effect and were more easily maintained.
 
 # Setting Things Up
 
 ## Collaboration Workflow
 
-As mentioned in the introduction, this project was collaborative. The project is housed in a GIT repository to facilitate this. Because of the small size of our team we had development success working off the main branch. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.
+As mentioned above, this project was a collaborative effort. The project is housed in a GIT repository to facilitate this. Because of the small size of our team, we had development success working simply off a main branch in GIT. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.
 
 ## Libraries
 
@@ -44,9 +46,9 @@ library(hms)
 
 ## Primary User Interface Methods
 
-The following two functions are designed to take user input and return a properly formatted and easy to use data table in the form of a tibble. They will validate each input from the user and pass them into functions whose purpose is the work of creating, processing, and handling our api request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures. 
+The following two functions are designed to take user input and return a properly formatted and easy to use data table or *tibble*. Before anything further, they will validate each input from the user. They are then passed into functions whose purpose is creating, processing, and handling our API request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures. 
 
-We will also introduce two further interface methods that allow for additional features such as summaries and plots. These [Generic Class Functions](#generic-class-functions) will take the tibble retrieved from the census API do display meaningful summaries and plots depending on the user's demands.
+We will also introduce two further interface methods that allow for additional features for summarizing numeric and categorical data as well as for plotting. These [Generic Class Functions](#generic-class-functions) will take the tibble of data processed from the census API request as an input to display meaningful summaries and plots depending on the user's demands.
 
 ### get_data_tibble_from_census_api
 
@@ -258,9 +260,9 @@ get_cat_refs("REGION") |> knitr::kable(align = 'c')
 
 ### get_subset_code
 
-In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset's numeric code to be used in the URL itself. If the subset is NULL, we simply return an asterisk to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
+In the construction of the URL, this function will take as arguments the combination of Geography and Subset to return a particular subset's numeric code used in the URL. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.
 
-- A great opportunity was taken to reuse the get_cat_refs above here. The regions and divisions had previously been hard-coded within this function but could now be pulled directly from the API using a single function call.
+- A great opportunity was taken to reuse the get_cat_refs from above here. The regions and divisions had previously been hard-coded within this function, but could now be pulled directly from the API using a single function call.
 
 ```{r}
 get_subset_code <- function(geography, subset) {
@@ -300,9 +302,9 @@ get_subset_code("division", "mountain")
 
 ### get_state_code
 
-As mentioned, we have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a *stop()* within it that will allow us the validate if the the state input returns a valid code.
+We have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a *stop()* within it that will allow us the validate if the the state input returns a valid code.
 
-- Another fantastic example of function reuse. Initially for get_state_code, the codes and their corresponding states were hardcoded as a named vector and contained within. This was refactored however to use the previously defined [get_cat_refs()](#get_cat_refs). 
+- Another fantastic use of get_cat_refs. Initially for get_state_code, the numeric codes and their corresponding states were hardcoded as a named vector and contained within. This was refactored however to greatly reduce the code and increased readability and robustness. 
 
 ```{r}
 # Function to get state code from state name or abbreviation
@@ -352,7 +354,7 @@ catch_error <- function(test) {
 }
 ```
 
-We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.
+We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we can often display to the user which input was incorrect and what the valid options are.
 
 Ensure that the year is between 2010 and 2022
 
@@ -369,7 +371,7 @@ validate_year <- function(year){
 validate_year(2000) |> catch_error()
 ```
 
-Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) below. We will check against these to ensure each variable in the input is valid.
+Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the [utility functions](#utilities) section for reference. We will check against these to ensure each variable in the input is valid.
 
 ```{r}
 # PWGTP and at least one other valid numeric variable must be selected
@@ -391,7 +393,6 @@ validate_numeric_vars <- function(numeric_vars) {
 ```{r}
 validate_numeric_vars(c("Invalid")) |> catch_error()
 ```
-
 
 In a similar fashion, we handle categorical variable inputs. We expect at least one categorical variable from the user. It should be noted, that we are not so much interested in the case of the variables. The URL does have a standard for case, but it does not cause an error in testing. Thus, we allow it for a better user experience.
 
@@ -418,9 +419,11 @@ validate_categorical_vars(c("Invalid")) |> catch_error()
 
 ### validate_geography_and_subset
 
-Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given that geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography. 
+Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given a valid geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography. 
 
 Selecting the State geography in particular is worth mentioning. We developed a [helper for states](#get_state_code) because we wanted to allow the user to provide a state name or abbreviation instead of a state code. In this way it is handled slightly different from the other geographies.
+
+- a quick note that get_cat_refs could potentially be implemented here as well to refactor the hardoded region and divisions
 
 ```{r}
 # Geography & Subset Together
@@ -478,6 +481,8 @@ It was discovered that some URL's do not return data. This caused errors down th
 
 - If the request was a success, we also check that the API returned anything at all for us to process. If nothing came back, there is no need to proceed.
 
+- It was also discovered that the API might reject or return an error message even if the request was "successful". In such a case, we shold notify the user of this as well.
+
 ```{r}
 # Check we got something from the API using GET(URL)
 validate_url_response <- function(response) {
@@ -516,11 +521,11 @@ validate_url_response(httr::GET("https://api.census.gov/invalid")) |>
 
 Here we reach our first undertaking after validating inputs. We need to construct a URL from the user input. 
 
-- We ran into some issues with fetching data from various years. It was discovered that by altering our base url dependent upon the year, we were able to query recent years and older records as well. This is seen in the *dataset_type* in the code below. 
+- We ran into some issues with fetching data from various years. It was discovered that by altering our base url dependent upon the year provided, we were able to query recent years and older records in different manners alleviating the issue. This is seen in the *dataset_type* in the code below. 
 
 - We then piece together all the desired variables to append to the base URL. 
 
-- Geography and subsets are at the end. Here we very much leverage the helper/utility functions that we defined above
+- Geography and subsets are at the end. Here we very much leverage the helper/utility functions that we defined above.
 
 ```{r}
 # Build a valid URL for the Census API
@@ -749,19 +754,19 @@ convert_cat_code_to_description <- function(data_column) {
 
 # Generic Class Functions
 
-Created generic functions to automatically summarize and plot certain returned data. These are the two additional interfaces that we built for the user. THe expect a tibble from a successful API call. 
+Generic functions were created to automatically summarize and plot certain returned data. These are the two additional interfaces that we built for the user. The expect a tibble from a successful API call. 
 
 ## Summary
 
-By default, it will summarize all numeric variables (other than PWGTP) and all categorical variables in the tibble. The user is able to specify the variables they’d like in particular as additional arguments.
+By default, it will summarize all numeric variables (other than PWGTP) and all categorical variables found in the tibble provided. The user is able to specify the variables they’d like in particular as additional arguments if all are not required.
 
 - Numeric variables will have their weighted sample means and standard deviations calculated.
 
 - Categorical variables will have their level counts displayed.
 
-- Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into *seconds from midnight* to perform calculation on them. We then convert back to HMS to be in a more friendly format.
+- Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into *seconds from midnight* to perform calculations on them. We then convert back to HMS so that they are in a more friendly format.
 
-- There are loops in this function that traverse across the columns of data and summarize them accordingly. Within each iteration of the loop, we utilize *vectorized functions* to process and make calculations across all observations in the vector of values for that column/variable. Since there are only a small number of variables that ever need be looped across, these loops were left intact. This however, could be a refactoring opportunity as we might wish to avoid loops in R altogether.
+- There are loops in this function that traverse across the columns of data and summarize them accordingly. Within each iteration of the loop, we utilize *vectorized functions* to process and make calculations across all the observations in the vector of values for that column/variable. Since there are only a small number of variables possible, these loops were left intact for readability. This however, could be a future refactoring opportunity as we might wish to avoid loops in R altogether.
 
 ```{r}
 # Summary Function for Census Class
@@ -849,7 +854,7 @@ summary.census <- function(data,
 
 ## Plotting
 
-Created a generic plot() function for a census class tibble. Requires the user to specify one categorical variable and one numeric variable for plotting purposes.
+A Generic plot() function was also created for a census class tibble. This requires the user to specify one categorical variable and one numeric variable for plotting purposes.
 
 - Here we check the inputs are in the data and filter out and missing entries before plotting.
 
@@ -899,7 +904,7 @@ plot.census <- function(data,
 }
 ```
 
-# Results KATY
+# Results
 
 ## Single Year
 
