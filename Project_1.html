@@ -122,12 +122,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
   <li><a href="#plotting" id="toc-plotting" class="nav-link" data-scroll-target="#plotting">Plotting</a></li>
   </ul></li>
-  <li><a href="#results-katy" id="toc-results-katy" class="nav-link" data-scroll-target="#results-katy">Results KATY</a>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
   <ul class="collapse">
   <li><a href="#single-year" id="toc-single-year" class="nav-link" data-scroll-target="#single-year">Single Year</a></li>
   <li><a href="#multi-year" id="toc-multi-year" class="nav-link" data-scroll-target="#multi-year">Multi Year</a></li>
   </ul></li>
-  <li><a href="#conclusion-katy" id="toc-conclusion-katy" class="nav-link" data-scroll-target="#conclusion-katy">Conclusion KATY</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
 </div>
@@ -170,15 +170,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Introduction</h1>
 <p><em>“Our goal is to write functions that will manipulate and process data sets that come from a census API.”</em></p>
 <p>This is direct from our project statement and effectively sums up the work below. What follows is a narrative describing some of the trials and tribulations that were overcome in implementing this direction along with the source code that serves as a working product.</p>
-<p>The motivation for this work was to develop a user friendly set of functions that allow easily querying the census API. The user would then receive the response in format that could be immediately usable in an R session. This process involved building a valid URL from the user desired information (inputs) and then processing the API response into a formatted tibble where each column of data is in its appropriate data type.</p>
-<p>Though strict public/private functions are not enforced here, we do make note of the four distinct functions intended to be interacted with by a potential user. By building these dedicated interfaces, we can rigorously validate user inputs and hope to guide them effectively when errors do occur.</p>
-<p>We have also relied heavily on the separation of concerns between functions to support our collaborative efforts. Small, focused functions that might possible be reused wherever possible were used with great effect and were more easily maintained.</p>
+<p>The motivation for this work was to develop a user friendly set of functions that allow us to easily query the census API. The user would then receive the response in a format that could be immediately usable in an R session for further analysis. In this case in the form of a tibble.</p>
+<p>This process involved building a valid URL from the user-desired information (inputs). These inputs were validated and used to construct the URl that requests user-defined information from the API. Once successful, the API response is then processed into a formatted tibble where each column of data is converted to its appropriate data type.</p>
+<p>Though strict public/private functions are not enforced here, we do make note of the four distinct functions intended to be interacted with by a potential user. By building these dedicated interfaces, we can rigorously validate user inputs and hope to provide effective feedback to guide the user if an error occurs.</p>
+<p>We have also relied heavily on the separation of concerns between functions to support our collaborative efforts. Small, focused functions that might be reused wherever possible were implemented with great effect and were more easily maintained.</p>
 </section>
 <section id="setting-things-up" class="level1">
 <h1>Setting Things Up</h1>
 <section id="collaboration-workflow" class="level2">
 <h2 class="anchored" data-anchor-id="collaboration-workflow">Collaboration Workflow</h2>
-<p>As mentioned in the introduction, this project was collaborative. The project is housed in a GIT repository to facilitate this. Because of the small size of our team we had development success working off the main branch. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.</p>
+<p>As mentioned above, this project was a collaborative effort. The project is housed in a GIT repository to facilitate this. Because of the small size of our team, we had development success working simply off a main branch in GIT. A development branch was created to explore the option of merging, but it proved to be more difficult than necessary for our workflow.</p>
 </section>
 <section id="libraries" class="level2">
 <h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
@@ -192,8 +193,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="primary-user-interface-methods" class="level2">
 <h2 class="anchored" data-anchor-id="primary-user-interface-methods">Primary User Interface Methods</h2>
-<p>The following two functions are designed to take user input and return a properly formatted and easy to use data table in the form of a tibble. They will validate each input from the user and pass them into functions whose purpose is the work of creating, processing, and handling our api request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures.</p>
-<p>We will also introduce two further interface methods that allow for additional features such as summaries and plots. These <a href="#generic-class-functions">Generic Class Functions</a> will take the tibble retrieved from the census API do display meaningful summaries and plots depending on the user’s demands.</p>
+<p>The following two functions are designed to take user input and return a properly formatted and easy to use data table or <em>tibble</em>. Before anything further, they will validate each input from the user. They are then passed into functions whose purpose is creating, processing, and handling our API request and response. With user validation checks up front, the helper functions can assume that their inputs are as expected and they can focus on the the more rigorous tasks of transforming user inputs into usable data structures.</p>
+<p>We will also introduce two further interface methods that allow for additional features for summarizing numeric and categorical data as well as for plotting. These <a href="#generic-class-functions">Generic Class Functions</a> will take the tibble of data processed from the census API request as an input to display meaningful summaries and plots depending on the user’s demands.</p>
 <section id="get_data_tibble_from_census_api" class="level3">
 <h3 class="anchored" data-anchor-id="get_data_tibble_from_census_api">get_data_tibble_from_census_api</h3>
 <ul>
@@ -428,9 +429,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="get_subset_code" class="level3">
 <h3 class="anchored" data-anchor-id="get_subset_code">get_subset_code</h3>
-<p>In the construction of the URL, this function will take in the combination of Geography and Subset to return that particular subset’s numeric code to be used in the URL itself. If the subset is NULL, we simply return an asterisk to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.</p>
+<p>In the construction of the URL, this function will take as arguments the combination of Geography and Subset to return a particular subset’s numeric code used in the URL. If the subset is NULL, we simply return an astrix to be used with any geography the user might provide. Otherwise, we need to retrieve the appropriate subset pertaining to the given geography.</p>
 <ul>
-<li>A great opportunity was taken to reuse the get_cat_refs above here. The regions and divisions had previously been hard-coded within this function but could now be pulled directly from the API using a single function call.</li>
+<li>A great opportunity was taken to reuse the get_cat_refs from above here. The regions and divisions had previously been hard-coded within this function, but could now be pulled directly from the API using a single function call.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>get_subset_code <span class="ot">&lt;-</span> <span class="cf">function</span>(geography, subset) {</span>
@@ -475,9 +476,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="get_state_code" class="level3">
 <h3 class="anchored" data-anchor-id="get_state_code">get_state_code</h3>
-<p>As mentioned, we have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a <em>stop()</em> within it that will allow us the validate if the the state input returns a valid code.</p>
+<p>We have a dedicated helper for states. This function is not only used to retrieve the appropriate numeric code that is to be used in the construction of the URL, it also has a <em>stop()</em> within it that will allow us the validate if the the state input returns a valid code.</p>
 <ul>
-<li>Another fantastic example of function reuse. Initially for get_state_code, the codes and their corresponding states were hardcoded as a named vector and contained within. This was refactored however to use the previously defined <a href="#get_cat_refs">get_cat_refs()</a>.</li>
+<li>Another fantastic use of get_cat_refs. Initially for get_state_code, the numeric codes and their corresponding states were hardcoded as a named vector and contained within. This was refactored however to greatly reduce the code and increased readability and robustness.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to get state code from state name or abbreviation</span></span>
@@ -520,7 +521,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="input-validation" class="level2">
 <h2 class="anchored" data-anchor-id="input-validation">Input Validation</h2>
-<p>We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we want to display to the user which input and what the correct options might be.</p>
+<p>We want to be able to fail early and give pertinent information back to the user if inputs are wrong or if an error occurs. These validation checks serve that purpose. If an input is wrong, we can often display to the user which input was incorrect and what the valid options are.</p>
 <p>Ensure that the year is between 2010 and 2022</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Year must be between 2010 and 2022.</span></span>
@@ -536,7 +537,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Caught error: Year must be between 2010 and 2022.</code></pre>
 </div>
 </div>
-<p>Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the <a href="#utilities">utility functions</a> below. We will check against these to ensure each variable in the input is valid.</p>
+<p>Here we handle the numeric variables. PWGTP and at least one other valid numeric variable must be selected. We have our lists of valid inputs in the <a href="#utilities">utility functions</a> section for reference. We will check against these to ensure each variable in the input is valid.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PWGTP and at least one other valid numeric variable must be selected</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>validate_numeric_vars <span class="ot">&lt;-</span> <span class="cf">function</span>(numeric_vars) {</span>
@@ -584,8 +585,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="validate_geography_and_subset" class="level3">
 <h3 class="anchored" data-anchor-id="validate_geography_and_subset">validate_geography_and_subset</h3>
-<p>Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given that geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography.</p>
+<p>Geography and subset are a bit more complicated, but the general idea still applies. We want to check the input against valid lists. Firstly we need to check geography. Given a valid geography, there are valid subsets that can be accepted. The subset can be NULL for any choice of geography.</p>
 <p>Selecting the State geography in particular is worth mentioning. We developed a <a href="#get_state_code">helper for states</a> because we wanted to allow the user to provide a state name or abbreviation instead of a state code. In this way it is handled slightly different from the other geographies.</p>
+<ul>
+<li>a quick note that get_cat_refs could potentially be implemented here as well to refactor the hardoded region and divisions</li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Geography &amp; Subset Together</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>validate_geography_and_subset <span class="ot">&lt;-</span> <span class="cf">function</span>(geography, subset) {</span>
@@ -645,6 +649,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><p>We first want to check that the status was a success. If we are dealing with more than just empty data, we can actually display the error message to further diagnose the issue.</p></li>
 <li><p>If the request was a success, we also check that the API returned anything at all for us to process. If nothing came back, there is no need to proceed.</p></li>
+<li><p>It was also discovered that the API might reject or return an error message even if the request was “successful”. In such a case, we shold notify the user of this as well.</p></li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check we got something from the API using GET(URL)</span></span>
@@ -687,9 +692,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="building-the-url">Building the URL</h2>
 <p>Here we reach our first undertaking after validating inputs. We need to construct a URL from the user input.</p>
 <ul>
-<li><p>We ran into some issues with fetching data from various years. It was discovered that by altering our base url dependent upon the year, we were able to query recent years and older records as well. This is seen in the <em>dataset_type</em> in the code below.</p></li>
+<li><p>We ran into some issues with fetching data from various years. It was discovered that by altering our base url dependent upon the year provided, we were able to query recent years and older records in different manners alleviating the issue. This is seen in the <em>dataset_type</em> in the code below.</p></li>
 <li><p>We then piece together all the desired variables to append to the base URL.</p></li>
-<li><p>Geography and subsets are at the end. Here we very much leverage the helper/utility functions that we defined above</p></li>
+<li><p>Geography and subsets are at the end. Here we very much leverage the helper/utility functions that we defined above.</p></li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a valid URL for the Census API</span></span>
@@ -744,8 +749,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="processing-the-response">Processing the Response</h2>
 <section id="query_census_with_url" class="level3">
 <h3 class="anchored" data-anchor-id="query_census_with_url">query_census_with_url</h3>
+<p>We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data</p>
 <ul>
-<li><p>We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data</p></li>
 <li><p>A series of helper functions were developed to keep better track of what each step within this function was doing, which helped to focus on small tasks rather than getting overwhelmed by everything that had to be done to get the final clean data</p></li>
 <li><p>The data frame that came out of the JSON-to-data-frame helper had all the data in columns, but everything was character, so a <a href="#process_census_data">final helper function</a> takes care of cleaning the data</p></li>
 </ul>
@@ -771,9 +776,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="json_to_raw_tbl_helper" class="level3">
 <h3 class="anchored" data-anchor-id="json_to_raw_tbl_helper">json_to_raw_tbl_helper</h3>
+<p>This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character</p>
 <ul>
-<li><p>This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character</p></li>
-<li><p>The data frame that was created from JSON had the column names in the first row, so a step was included to grab the first row as the column names, and take the rest of the rows as the observations</p></li>
+<li>The data frame that was created from JSON had the column names in the first row, so a step was included to grab the first row as the column names, and take the rest of the rows as the observations</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>json_to_raw_tbl_helper <span class="ot">&lt;-</span> <span class="cf">function</span>(census_raw) {</span>
@@ -792,8 +797,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="process_census_data" class="level3">
 <h3 class="anchored" data-anchor-id="process_census_data">process_census_data</h3>
+<p>This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.</p>
 <ul>
-<li><p>This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.</p></li>
 <li><p>It was straight-forward to coerce categorical fields into factors, and the regular numeric fields into numeric.</p></li>
 <li><p>It took a lot of debugging and research to get the time fields right.</p>
 <ul>
@@ -855,8 +860,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="convert_num_code_to_time" class="level3">
 <h3 class="anchored" data-anchor-id="convert_num_code_to_time">convert_num_code_to_time</h3>
+<p>This is another helper function to take the numerical time codes and change them to a meaningful time</p>
 <ul>
-<li><p>This is another helper function to take the numerical time codes and change them to a meaningful time</p></li>
 <li><p>It starts with another helper function to get a reference tibble that provides the key-value pairs for each time code and time</p></li>
 <li><p>It takes the census data and left joins to the time reference table, and replaces the JWAP raw value with the actual time. Using a variable as one of the keys in the “by” argument proved elusive, so we kept it as a natural join. It’s not ideal, but it does work. It meant the names of the primary and foreign keys in each table had to match (i.e.&nbsp;JWAP or JWDP), and that no other columns between the two tables could share the same name.</p></li>
 <li><p>The final step was to replace the values in JWAP/JWDP with the correct time from the 2nd table, and drop the now duplicate field that had been pulled in (named JWAP_clean or JWDP_clean)</p></li>
@@ -885,9 +890,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="convert_cat_code_to_description" class="level3">
 <h3 class="anchored" data-anchor-id="convert_cat_code_to_description">convert_cat_code_to_description</h3>
+<p>The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table</p>
 <ul>
-<li><p>The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table</p></li>
-<li><p>Since it appeared sometimes raw data seemed to omit leading zeroes, we decided to remove all leading zeroes to ensure the joins matched values appropriately. This was accomplished by coercing the character values to numeric, and then back to character.</p></li>
+<li>Since it appeared sometimes raw data seemed to omit leading zeroes, we decided to remove all leading zeroes to ensure the joins matched values appropriately. This was accomplished by coercing the character values to numeric, and then back to character.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># take categorical raw value and convert to descriptive value, and make a factor</span></span>
@@ -919,15 +924,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="generic-class-functions" class="level1">
 <h1>Generic Class Functions</h1>
-<p>Created generic functions to automatically summarize and plot certain returned data. These are the two additional interfaces that we built for the user. THe expect a tibble from a successful API call.</p>
+<p>Generic functions were created to automatically summarize and plot certain returned data. These are the two additional interfaces that we built for the user. The expect a tibble from a successful API call.</p>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<p>By default, it will summarize all numeric variables (other than PWGTP) and all categorical variables in the tibble. The user is able to specify the variables they’d like in particular as additional arguments.</p>
+<p>By default, it will summarize all numeric variables (other than PWGTP) and all categorical variables found in the tibble provided. The user is able to specify the variables they’d like in particular as additional arguments if all are not required.</p>
 <ul>
 <li><p>Numeric variables will have their weighted sample means and standard deviations calculated.</p></li>
 <li><p>Categorical variables will have their level counts displayed.</p></li>
-<li><p>Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into <em>seconds from midnight</em> to perform calculation on them. We then convert back to HMS to be in a more friendly format.</p></li>
-<li><p>There are loops in this function that traverse across the columns of data and summarize them accordingly. Within each iteration of the loop, we utilize <em>vectorized functions</em> to process and make calculations across all observations in the vector of values for that column/variable. Since there are only a small number of variables that ever need be looped across, these loops were left intact. This however, could be a refactoring opportunity as we might wish to avoid loops in R altogether.</p></li>
+<li><p>Time variables are considered numeric here, but they need to be handled with some care. We convert them from their HMS form into <em>seconds from midnight</em> to perform calculations on them. We then convert back to HMS so that they are in a more friendly format.</p></li>
+<li><p>There are loops in this function that traverse across the columns of data and summarize them accordingly. Within each iteration of the loop, we utilize <em>vectorized functions</em> to process and make calculations across all the observations in the vector of values for that column/variable. Since there are only a small number of variables possible, these loops were left intact for readability. This however, could be a future refactoring opportunity as we might wish to avoid loops in R altogether.</p></li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary Function for Census Class</span></span>
@@ -1015,7 +1020,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="plotting" class="level2">
 <h2 class="anchored" data-anchor-id="plotting">Plotting</h2>
-<p>Created a generic plot() function for a census class tibble. Requires the user to specify one categorical variable and one numeric variable for plotting purposes.</p>
+<p>A Generic plot() function was also created for a census class tibble. This requires the user to specify one categorical variable and one numeric variable for plotting purposes.</p>
 <ul>
 <li><p>Here we check the inputs are in the data and filter out and missing entries before plotting.</p></li>
 <li><p>The biggest point of note is the use of sampling. Some of the data sets that come through the API can contain millions of records. Particularly if the region is set to <em>All</em>. Due to this circumstance, the plotting was found to take a considerable amount of time. To address this, we simply evaluate the number of rows in the data, and if necessary, take a random sample for plotting purposes.</p></li>
@@ -1065,8 +1070,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 </section>
-<section id="results-katy" class="level1">
-<h1>Results KATY</h1>
+<section id="results" class="level1">
+<h1>Results</h1>
 <section id="single-year" class="level2">
 <h2 class="anchored" data-anchor-id="single-year">Single Year</h2>
 <p>First, we demonstrate the output of the main function using default values.</p>
@@ -1166,7 +1171,7 @@ $SEX$counts
 </div>
 </div>
 <hr>
-<p>For our investigative demonstration, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.</p>
+<p>For our investigative example, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>test_with_vars <span class="ot">&lt;-</span> <span class="fu">get_data_tibble_from_census_api</span>(<span class="dv">2015</span>,</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"JWAP"</span>),</span>
@@ -1235,6 +1240,7 @@ Joining with `by = join_by(JWAP)`</code></pre>
 </table>
 </div>
 </div>
+<p>The summary for our example tibble appears below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary.census</span>(test_with_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1276,23 +1282,122 @@ $HHL$counts
 </section>
 <section id="multi-year" class="level2">
 <h2 class="anchored" data-anchor-id="multi-year">Multi Year</h2>
-<p>To showcase our multi-year function, we will view the monthly gas cost (GASP) for the Northeast region, for years 2016 through 2018, by whether they have given birth within the last 12 months (FER).</p>
-<p><strong><em>This is taking way too long, removing code block for now</em></strong></p>
+<p>To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in New England, from 2016 through 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="ot">&lt;-</span> <span class="fu">query_census_multiple_years</span>(<span class="dv">2016</span><span class="sc">:</span><span class="dv">2018</span>, </span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                                               <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"GASP"</span>), </span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                                               <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"GRPIP"</span>), </span>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="st">"FER"</span>, </span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">geography =</span> <span class="st">"Region"</span>, </span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">subset =</span> <span class="st">"Northeast"</span>)</span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="sc">|&gt;</span></span>
-<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span></span>
-<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">'c'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">geography =</span> <span class="st">"Division"</span>, </span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">subset =</span> <span class="st">"New England"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>URL:  https://api.census.gov/data/2016/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "API request successful"</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(FER)`
+Joining with `by = join_by(DIVISION)`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>URL:  https://api.census.gov/data/2017/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "API request successful"</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(FER)`
+Joining with `by = join_by(DIVISION)`</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>URL:  https://api.census.gov/data/2018/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "API request successful"</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(FER)`
+Joining with `by = join_by(DIVISION)`</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="sc">|&gt;</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year, DIVISION, FER) <span class="sc">|&gt;</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_GRPIP =</span> <span class="fu">sum</span>(PWGTP<span class="sc">*</span>GRPIP)<span class="sc">/</span><span class="fu">sum</span>(PWGTP)) <span class="sc">|&gt;</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">'c'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'Year', 'DIVISION'. You can override using
+the `.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 30%">
+<col style="width: 51%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Year</th>
+<th style="text-align: center;">DIVISION</th>
+<th style="text-align: center;">FER</th>
+<th style="text-align: center;">mean_GRPIP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">2016</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
+<td style="text-align: center;">10.17115</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2016</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">13.56883</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2016</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">16.80059</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2017</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
+<td style="text-align: center;">10.09829</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2017</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">13.45026</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2017</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">16.31552</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2018</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
+<td style="text-align: center;">10.01571</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2018</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">13.33774</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2018</td>
+<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">15.77039</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </section>
 </section>
-<section id="conclusion-katy" class="level1">
-<h1>Conclusion KATY</h1>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>In the preceding sections, we have outlined our collaborative process for querying API endpoints, validating our inputs, processing the data we receive, and presenting meaningful summaries and plots. Throughout the project, we have utilized the tidyverse suite of packages for their efficiency and their useful data structure, the tibble. We were also mindful of opportunities where the same functions could be reused in multiple places. This minimizes redundant code blocks, enhances readability, and lays groundwork for potential future expansion of the project’s scope (a tenet of defensive programming). Encapsulating smaller functions that handle just one or a few tasks inside larger ones simplified and focused our work. This model, plus working with a git repository, enabled us to effectively work as a team towards successful completion of this project.</p>
 </section>
 
 </main>

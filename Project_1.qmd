@@ -578,7 +578,7 @@ test_url <- build_query_url()
 
 ### query_census_with_url
 
-- We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
+We began with the instructions from the lecture to query the API and transform the JSON string into a data frame with the raw data
 
 - A series of helper functions were developed to keep better track of what each step within this function was doing, which helped to focus on small tasks rather than getting overwhelmed by everything that had to be done to get the final clean data
 
@@ -606,7 +606,7 @@ query_census_with_url <- function(url) {
 
 ### json_to_raw_tbl_helper
 
-- This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character
+This is a helper function for query_census_with_url, and puts json stuff into a raw tibble. All variables are character
 
 - The data frame that was created from JSON had the column names in the first row, so a step was included to grab the first row as the column names, and take the rest of the rows as the observations
 
@@ -627,7 +627,7 @@ json_to_raw_tbl_helper <- function(census_raw) {
 
 ### process_census_data
 
-- This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.
+This function is responsible for taking the character data in the tibble, and converting them to the appropriate data types.
 
 - It was straight-forward to coerce categorical fields into factors, and the regular numeric fields into numeric.
 
@@ -689,7 +689,7 @@ process_census_data <- function(census_data_tbl) {
 
 ### convert_num_code_to_time
 
-- This is another helper function to take the numerical time codes and change them to a meaningful time
+This is another helper function to take the numerical time codes and change them to a meaningful time
 
 - It starts with another helper function to get a reference tibble that provides the key-value pairs for each time code and time
 
@@ -721,7 +721,7 @@ convert_num_code_to_time <- function(census_data_tbl, time_code) {
 
 ### convert_cat_code_to_description
 
-- The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table
+The job of this function is to convert the raw values for categorical variables in the data, and change them to the meaningful descriptive values using a reference table
 
 - Since it appeared sometimes raw data seemed to omit leading zeroes, we decided to remove all leading zeroes to ensure the joins matched values appropriately. This was accomplished by coercing the character values to numeric, and then back to character.
 
@@ -932,7 +932,7 @@ plot.census(test_with_defaults, "AGEP", "SEX")
 
 ---
 
-For our investigative demonstration, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.
+For our investigative example, we have chosen to examine how arrival time to work (JWAP) is related to household language (HHL) in the state of North Carolina for the year 2015.
 
 ```{r}
 test_with_vars <- get_data_tibble_from_census_api(2015,
@@ -945,7 +945,7 @@ test_with_vars |>
   knitr::kable(align = 'c')
 ```
 
-
+The summary for our example tibble appears below. 
 
 ```{r}
 summary.census(test_with_vars)
@@ -959,23 +959,24 @@ plot.census(test_with_vars, "JWAP", "HHL")
 
 ## Multi Year
 
-To showcase our multi-year function, we will view the monthly gas cost (GASP) for the Northeast region, for years 2016 through 2018, by whether they have given birth within the last 12 months (FER).
-
-***This is taking way too long, not executing this code block for now***
+To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in New England, from 2016 through 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.
 
 ```{r}
-#| eval = FALSE
-
 test_multi_year <- query_census_multiple_years(2016:2018, 
-                                               c("PWGTP", "GASP"), 
+                                               c("PWGTP", "GRPIP"), 
                                                "FER", 
-                                               geography = "Region", 
-                                               subset = "Northeast")
+                                               geography = "Division", 
+                                               subset = "New England")
+
 
 test_multi_year |>
-  head() |>
+  group_by(Year, DIVISION, FER) |>
+  summarize(mean_GRPIP = sum(PWGTP*GRPIP)/sum(PWGTP)) |>
   knitr::kable(align = 'c')
 ```
 
 
-# Conclusion KATY
+# Conclusion
+
+In the preceding sections, we have outlined our collaborative process for querying API endpoints, validating our inputs, processing the data we receive, and presenting meaningful summaries and plots. Throughout the project, we have utilized the tidyverse suite of packages for their efficiency and their useful data structure, the tibble. We were also mindful of opportunities where the same functions could be reused in multiple places. This minimizes redundant code blocks, enhances readability, and lays groundwork for potential future expansion of the project's scope (a tenet of defensive programming). Encapsulating smaller functions that handle just one or a few tasks inside larger ones simplified and focused our work. This model, plus working with a git repository, enabled us to effectively work as a team towards successful completion of this project. 
+
