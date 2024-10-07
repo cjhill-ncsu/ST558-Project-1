@@ -959,18 +959,18 @@ plot.census(test_with_vars, "JWAP", "HHL")
 
 ## Multi Year
 
-To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in New England, from 2016 through 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.
+To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in Wyoming, from 2017 and 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.
 
 ```{r}
-test_multi_year <- query_census_multiple_years(2016:2018, 
+test_multi_year <- query_census_multiple_years(2017:2018, 
                                                c("PWGTP", "GRPIP"), 
                                                "FER", 
-                                               geography = "Division", 
-                                               subset = "New England")
+                                               geography = "State", 
+                                               subset = "Wyoming")
 
 
 test_multi_year |>
-  group_by(Year, DIVISION, FER) |>
+  group_by(Year, ST, FER) |>
   summarize(mean_GRPIP = sum(PWGTP*GRPIP)/sum(PWGTP)) |>
   knitr::kable(align = 'c')
 ```
