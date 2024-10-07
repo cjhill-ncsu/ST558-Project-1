@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.555">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -36,7 +36,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -60,26 +60,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="Project_1_files/libs/clipboard/clipboard.min.js"></script>
-<script src="Project_1_files/libs/quarto-html/quarto.js"></script>
-<script src="Project_1_files/libs/quarto-html/popper.min.js"></script>
-<script src="Project_1_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="Project_1_files/libs/quarto-html/anchor.min.js"></script>
-<link href="Project_1_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Project_1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="Project_1_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="Project_1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Project_1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
 
 
 </head>
 
 <body>
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
@@ -130,7 +166,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
-</div>
+    </div>
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -676,7 +713,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># print to console to show progression in request</span></span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"/nAPI request successful"</span>)</span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"API request successful"</span>)</span>
 <span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
@@ -1078,7 +1115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>test_with_defaults <span class="ot">&lt;-</span> <span class="fu">get_data_tibble_from_census_api</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2022/acs/acs1/pums?get=AGEP,PWGTP,SEX&amp;for=State:08[1] "/nAPI request successful"</code></pre>
+<pre><code>URL:  https://api.census.gov/data/2022/acs/acs1/pums?get=AGEP,PWGTP,SEX&amp;for=State:08[1] "API request successful"</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(SEX)`
@@ -1179,7 +1216,7 @@ $SEX$counts
 <span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"state"</span>,</span>
 <span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"nc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2015/acs/acs5/pums?get=PWGTP,JWAP,HHL&amp;for=state:37[1] "/nAPI request successful"</code></pre>
+<pre><code>URL:  https://api.census.gov/data/2015/acs/acs5/pums?get=PWGTP,JWAP,HHL&amp;for=state:37[1] "API request successful"</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(HHL)`
@@ -1282,112 +1319,87 @@ $HHL$counts
 </section>
 <section id="multi-year" class="level2">
 <h2 class="anchored" data-anchor-id="multi-year">Multi Year</h2>
-<p>To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in New England, from 2016 through 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.</p>
+<p>To showcase our multi-year function, we will view the gross rent as a percentage of household income over the last 12 months (GRPIP) in Wyoming, from 2017 and 2018, by whether they have given birth within the last 12 months (FER). We display an aggregate of the results, so that the stratification by year can be seen.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="ot">&lt;-</span> <span class="fu">query_census_multiple_years</span>(<span class="dv">2016</span><span class="sc">:</span><span class="dv">2018</span>, </span>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="ot">&lt;-</span> <span class="fu">query_census_multiple_years</span>(<span class="dv">2017</span><span class="sc">:</span><span class="dv">2018</span>, </span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                                               <span class="fu">c</span>(<span class="st">"PWGTP"</span>, <span class="st">"GRPIP"</span>), </span>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="st">"FER"</span>, </span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">geography =</span> <span class="st">"Division"</span>, </span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">subset =</span> <span class="st">"New England"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">geography =</span> <span class="st">"State"</span>, </span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">subset =</span> <span class="st">"Wyoming"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2016/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "/nAPI request successful"</code></pre>
+<pre><code>URL:  https://api.census.gov/data/2017/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=State:56[1] "API request successful"</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(FER)`
-Joining with `by = join_by(DIVISION)`</code></pre>
+Joining with `by = join_by(ST)`</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2017/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "/nAPI request successful"</code></pre>
+<pre><code>URL:  https://api.census.gov/data/2018/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=State:56[1] "API request successful"</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(FER)`
-Joining with `by = join_by(DIVISION)`</code></pre>
+Joining with `by = join_by(ST)`</code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>URL:  https://api.census.gov/data/2018/acs/acs5/pums?get=PWGTP,GRPIP,FER&amp;for=Division:1[1] "/nAPI request successful"</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="sc">|&gt;</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year, ST, FER) <span class="sc">|&gt;</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_GRPIP =</span> <span class="fu">sum</span>(PWGTP<span class="sc">*</span>GRPIP)<span class="sc">/</span><span class="fu">sum</span>(PWGTP)) <span class="sc">|&gt;</span></span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">'c'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(FER)`
-Joining with `by = join_by(DIVISION)`</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>test_multi_year <span class="sc">|&gt;</span></span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year, DIVISION, FER) <span class="sc">|&gt;</span></span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_GRPIP =</span> <span class="fu">sum</span>(PWGTP<span class="sc">*</span>GRPIP)<span class="sc">/</span><span class="fu">sum</span>(PWGTP)) <span class="sc">|&gt;</span></span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">'c'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`summarise()` has grouped output by 'Year', 'DIVISION'. You can override using
-the `.groups` argument.</code></pre>
+<pre><code>`summarise()` has grouped output by 'Year', 'ST'. You can override using the
+`.groups` argument.</code></pre>
 </div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 5%">
-<col style="width: 30%">
-<col style="width: 51%">
-<col style="width: 11%">
+<col style="width: 7%">
+<col style="width: 14%">
+<col style="width: 64%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: center;">Year</th>
-<th style="text-align: center;">DIVISION</th>
+<th style="text-align: center;">ST</th>
 <th style="text-align: center;">FER</th>
 <th style="text-align: center;">mean_GRPIP</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">2016</td>
-<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">2017</td>
+<td style="text-align: center;">Wyoming/WY</td>
 <td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
-<td style="text-align: center;">10.17115</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">2016</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">No</td>
-<td style="text-align: center;">13.56883</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">2016</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">Yes</td>
-<td style="text-align: center;">16.80059</td>
+<td style="text-align: center;">7.610905</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">2017</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
-<td style="text-align: center;">10.09829</td>
+<td style="text-align: center;">Wyoming/WY</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">10.687256</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">2017</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">No</td>
-<td style="text-align: center;">13.45026</td>
+<td style="text-align: center;">Wyoming/WY</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">13.154172</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">2017</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">Yes</td>
-<td style="text-align: center;">16.31552</td>
-</tr>
-<tr class="odd">
 <td style="text-align: center;">2018</td>
-<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">Wyoming/WY</td>
 <td style="text-align: center;">N/A (less than 15 years/greater than 50 years/ male)</td>
-<td style="text-align: center;">10.01571</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">2018</td>
-<td style="text-align: center;">New England (Northeast region)</td>
-<td style="text-align: center;">No</td>
-<td style="text-align: center;">13.33774</td>
+<td style="text-align: center;">7.515208</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">2018</td>
-<td style="text-align: center;">New England (Northeast region)</td>
+<td style="text-align: center;">Wyoming/WY</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">10.709837</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2018</td>
+<td style="text-align: center;">Wyoming/WY</td>
 <td style="text-align: center;">Yes</td>
-<td style="text-align: center;">15.77039</td>
+<td style="text-align: center;">11.894927</td>
 </tr>
 </tbody>
 </table>
@@ -1398,10 +1410,11 @@ the `.groups` argument.</code></pre>
 <section id="conclusion" class="level1">
 <h1>Conclusion</h1>
 <p>In the preceding sections, we have outlined our collaborative process for querying API endpoints, validating our inputs, processing the data we receive, and presenting meaningful summaries and plots. Throughout the project, we have utilized the tidyverse suite of packages for their efficiency and their useful data structure, the tibble. We were also mindful of opportunities where the same functions could be reused in multiple places. This minimizes redundant code blocks, enhances readability, and lays groundwork for potential future expansion of the project’s scope (a tenet of defensive programming). Encapsulating smaller functions that handle just one or a few tasks inside larger ones simplified and focused our work. This model, plus working with a git repository, enabled us to effectively work as a team towards successful completion of this project.</p>
+
+
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1437,18 +1450,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1480,7 +1482,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp('/' + window.location.host + '/');
@@ -1488,7 +1512,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
